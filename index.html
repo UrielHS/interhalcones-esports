@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>InterHalcones Esports - Sistema de Alto Rendimiento</title>
+  <title>InterHalcones Esports - Equipo de Alto Rendimiento</title>
   
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
@@ -65,11 +65,11 @@
 </head>
 <body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
 
-  <!-- HEADER -->
+  <!-- HEADER (ACCESO LIBRE PARA TODOS - CAMBIO DE JUGADOR DIRECTO) -->
   <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
     <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
       
-      <!-- Brand & Status -->
+      <!-- Logo y Título -->
       <div class="flex items-center gap-3 w-full md:w-auto justify-between">
         <div class="flex items-center gap-3">
           <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">
@@ -77,13 +77,13 @@
           </div>
           <div>
             <h1 class="font-display font-bold text-lg text-white leading-tight flex items-center gap-2">
-              InterHalcones <span class="text-sky-400 text-xs px-2 py-0.5 rounded-full bg-sky-950/80 border border-sky-800">Alto Rendimiento</span>
+              InterHalcones <span class="text-sky-400 text-xs px-2 py-0.5 rounded-full bg-sky-950/80 border border-sky-800">Equipo Oficial</span>
             </h1>
             <p class="text-xs text-slate-400">Objetivo: Torneo Oficial 24 de Octubre</p>
           </div>
         </div>
 
-        <!-- Connection Status Indicator -->
+        <!-- Estado de Conexión -->
         <div class="flex items-center gap-2">
           <button onclick="openSupabaseConfigModal()" id="supabase-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/70 border border-emerald-700/60 text-emerald-400 hover:bg-emerald-900/50 transition">
             <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
@@ -93,32 +93,38 @@
         </div>
       </div>
 
-      <!-- Controls -->
+      <!-- Controles y Selector Libre de Jugador -->
       <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
-        <!-- View Toggle -->
+        <!-- Cambio de Vista -->
         <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center text-xs">
           <button id="btn-mode-coach" onclick="switchViewMode('coach')" class="px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-white bg-sky-600">
-            <i class="fa-solid fa-user-shield mr-1.5"></i> Vista Coach
+            <i class="fa-solid fa-chalkboard-user mr-1.5"></i> Vista Profesor / Coach
           </button>
           <button id="btn-mode-player" onclick="switchViewMode('player')" class="px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-slate-400 hover:text-white">
-            <i class="fa-solid fa-gamepad mr-1.5"></i> Atleta
+            <i class="fa-solid fa-gamepad mr-1.5"></i> Vista Atleta
           </button>
         </div>
 
-        <!-- Player Selector -->
+        <!-- Selector Rápido de Jugador (Sin contraseñas) -->
         <div id="player-selector-container" class="hidden flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
-          <label class="text-slate-400 font-medium whitespace-nowrap">Atleta:</label>
+          <label class="text-slate-400 font-medium whitespace-nowrap"><i class="fa-solid fa-user text-sky-400 mr-1"></i> Jugador:</label>
           <select id="player-select" onchange="onPlayerSelectChange(this.value)" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
           </select>
         </div>
 
-        <!-- Sync Button -->
-        <button onclick="loadAllDataFromSupabase(true)" title="Sincronizar con Supabase" class="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-sky-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+        <!-- Botón de Limpieza y Sincronización a Cero -->
+        <button onclick="forceCleanReset()" title="Restablecer todo a cero" class="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-amber-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+          <i class="fa-solid fa-rotate-left"></i>
+          <span class="hidden sm:inline">Reset 0%</span>
+        </button>
+
+        <!-- Botón de Sincronización -->
+        <button onclick="loadAllDataFromSupabase(true)" title="Sincronizar datos" class="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-sky-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
           <i id="sync-icon" class="fa-solid fa-arrows-rotate"></i>
           <span class="hidden sm:inline">Sync</span>
         </button>
 
-        <!-- Countdown -->
+        <!-- Contador para el Torneo -->
         <div class="hidden lg:flex items-center gap-2 bg-amber-950/40 border border-amber-800/50 text-amber-300 text-xs font-semibold px-3 py-1.5 rounded-xl">
           <i class="fa-solid fa-stopwatch text-amber-400"></i>
           <span id="countdown-badge">Cargando...</span>
@@ -128,19 +134,19 @@
     </div>
   </header>
 
-  <!-- MAIN -->
+  <!-- CONTENIDO PRINCIPAL -->
   <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
 
-    <!-- COACH VIEW -->
+    <!-- VISTA PROFESOR / COACH -->
     <div id="view-coach" class="space-y-6">
       
-      <!-- Metrics Dashboard -->
+      <!-- Panel de Métricas Generales -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Atletas en Roster</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Atletas en Lista</p>
             <h3 id="coach-player-count" class="font-display font-bold text-2xl text-white mt-1">6 Jugadores</h3>
-            <p class="text-xs text-sky-400 mt-1"><i class="fa-solid fa-gamepad mr-1"></i> Fortnite, Smash, EAFC, MK</p>
+            <p class="text-xs text-sky-400 mt-1"><i class="fa-solid fa-gamepad mr-1"></i> Fortnite, Smash, EAFC, Mario Kart</p>
           </div>
           <div class="w-12 h-12 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-400 text-xl border border-sky-500/20">
             <i class="fa-solid fa-users"></i>
@@ -151,7 +157,7 @@
           <div>
             <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cumplimiento Global</p>
             <h3 id="coach-task-completion-rate" class="font-display font-bold text-2xl text-emerald-400 mt-1">0%</h3>
-            <p class="text-xs text-slate-400 mt-1">Clase presencial y misiones en casa</p>
+            <p class="text-xs text-slate-400 mt-1">Prácticas en clase y retos en casa</p>
           </div>
           <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 text-xl border border-emerald-500/20">
             <i class="fa-solid fa-list-check"></i>
@@ -160,9 +166,9 @@
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Evidencias & VODs</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Fotos y Videos Subidos</p>
             <h3 id="coach-vod-count" class="font-display font-bold text-2xl text-purple-400 mt-1">0</h3>
-            <p class="text-xs text-slate-400 mt-1">Capturas y clips subidos</p>
+            <p class="text-xs text-slate-400 mt-1">Pruebas comprobadas de práctica</p>
           </div>
           <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 text-xl border border-purple-500/20">
             <i class="fa-solid fa-video"></i>
@@ -171,9 +177,9 @@
 
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
           <div>
-            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Sesiones en Vivo</p>
-            <h3 class="font-display font-bold text-xl text-amber-400 mt-1">Martes / Jueves</h3>
-            <p class="text-xs text-slate-400 mt-1">90 min presenciales</p>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Entrenamientos Presenciales</p>
+            <h3 class="font-display font-bold text-xl text-amber-400 mt-1">Martes y Jueves</h3>
+            <p class="text-xs text-slate-400 mt-1">90 min de práctica guiada y retas</p>
           </div>
           <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl border border-amber-500/20">
             <i class="fa-solid fa-chalkboard-user"></i>
@@ -181,28 +187,33 @@
         </div>
       </div>
 
-      <!-- Roster Header -->
+      <!-- Cabecera del Roster -->
       <div class="space-y-4">
         <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
-            <h2 class="font-display font-bold text-2xl text-white">Roster Oficial de Atletas</h2>
-            <p class="text-sm text-slate-400">Selecciona un atleta para ver su plan personalizado, auditar evidencias o agregar feedback de coach.</p>
+            <h2 class="font-display font-bold text-2xl text-white">Roster Oficial de Atletas (6 Jugadores)</h2>
+            <p class="text-sm text-slate-400">Haz clic en cualquier tarjeta para ver su plan, revisar sus fotos o videos de práctica y ver sus metas.</p>
           </div>
-          <button onclick="openEditPlayerModal(true)" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <i class="fa-solid fa-user-plus"></i> Registrar Atleta
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="forceCleanReset()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl text-xs font-semibold transition border border-slate-700 flex items-center gap-1.5" title="Restablecer los 6 atletas desde cero">
+              <i class="fa-solid fa-arrow-rotate-left"></i> Restablecer Todo a Cero
+            </button>
+            <button onclick="openEditPlayerModal(true)" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+              <i class="fa-solid fa-user-plus"></i> Registrar Nuevo Atleta
+            </button>
+          </div>
         </div>
 
-        <!-- Roster Grid -->
+        <!-- Cuadrícula de Jugadores -->
         <div id="roster-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"></div>
       </div>
 
-      <!-- Master 5-Week Roadmap -->
+      <!-- Plan de 5 Semanas en Lenguaje Sencillo -->
       <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-4">
           <div>
-            <h3 class="font-display font-bold text-xl text-white">Metodología de Alto Rendimiento (5 Semanas)</h3>
-            <p class="text-xs text-slate-400">Martes y Jueves (Presencial 90m) + Misiones Asíncronas en Casa con Captura/Clip Obligatorio</p>
+            <h3 class="font-display font-bold text-xl text-white">Plan de Preparación Rumbo al Torneo (5 Semanas)</h3>
+            <p class="text-xs text-slate-400">Martes y Jueves (90 min en clase con el profesor) + Retos en casa de 15 a 20 min con foto o clip obligatorio</p>
           </div>
           <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-800/60 self-start md:self-auto">
             10 Sesiones Presenciales
@@ -216,8 +227,8 @@
                 <span class="text-xs font-bold text-sky-400">SEM 01</span>
                 <span class="text-[10px] text-slate-500">22-24 Sep</span>
               </div>
-              <h4 class="font-bold text-sm text-white mb-1">Diagnóstico & Setup</h4>
-              <p class="text-xs text-slate-400">Auditoría de bindings, deadzones, benchmarks mecánicos y calibración de personalidad.</p>
+              <h4 class="font-bold text-sm text-white mb-1">Acomodar Controles y Nivel Inicial</h4>
+              <p class="text-xs text-slate-400">Acomodar botones, sensibilidad del control y medir qué tan rápido construimos, apuntamos o manejamos.</p>
             </div>
             <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
               <i class="fa-solid fa-sliders mr-1"></i> Sesión 1 y 2
@@ -230,8 +241,8 @@
                 <span class="text-xs font-bold text-sky-400">SEM 02</span>
                 <span class="text-[10px] text-slate-500">29 Sep-1 Oct</span>
               </div>
-              <h4 class="font-bold text-sm text-white mb-1">Mecánica Pura & Micro</h4>
-              <p class="text-xs text-slate-400">Ejecución aislada: entradas manuales, timed green, piece control y fast falls.</p>
+              <h4 class="font-bold text-sm text-white mb-1">Puntería, Reflejos y Curvas</h4>
+              <p class="text-xs text-slate-400">Aprender a apuntar rápido, esquivar sin trabarse, no barrerse a lo loco y tomar curvas cerradas sin chocar.</p>
             </div>
             <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
               <i class="fa-solid fa-gamepad mr-1"></i> Sesión 3 y 4
@@ -244,8 +255,8 @@
                 <span class="text-xs font-bold text-sky-400">SEM 03</span>
                 <span class="text-[10px] text-slate-500">6-8 Oct</span>
               </div>
-              <h4 class="font-bold text-sm text-white mb-1">Estrategia & Macro</h4>
-              <p class="text-xs text-slate-400">Toma de decisiones con ventaja de recursos, lectura de rivales y análisis de VODs.</p>
+              <h4 class="font-bold text-sm text-white mb-1">Estrategia y Juego en Equipo</h4>
+              <p class="text-xs text-slate-400">Tomar buenas decisiones, cuidarse la espalda con el compañero, defender la portería y no regalar ventajas.</p>
             </div>
             <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
               <i class="fa-solid fa-chart-line mr-1"></i> Sesión 5 y 6
@@ -258,8 +269,8 @@
                 <span class="text-xs font-bold text-sky-400">SEM 04</span>
                 <span class="text-[10px] text-slate-500">13-15 Oct</span>
               </div>
-              <h4 class="font-bold text-sm text-white mb-1">Resiliencia & Anti-Tilt</h4>
-              <p class="text-xs text-slate-400">Simulación con desventaja inducida, respiración 4-4-4-4 y bitácora neutral objetiva.</p>
+              <h4 class="font-bold text-sm text-white mb-1">Mente Fría y Cero Enojos</h4>
+              <p class="text-xs text-slate-400">Aprender de los errores en vez de enojarse, usar el Botón de Calma (respiración de 4 seg) y no culpar al rival.</p>
             </div>
             <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
               <i class="fa-solid fa-brain mr-1"></i> Sesión 7 y 8
@@ -272,8 +283,8 @@
                 <span class="text-xs font-bold text-amber-400">SEM 05</span>
                 <span class="text-[10px] text-amber-300">20-22 Oct</span>
               </div>
-              <h4 class="font-bold text-sm text-amber-200 mb-1">Simulacro Competitivo</h4>
-              <p class="text-xs text-amber-100/70">Torneo interno en vivo bajo presión, casteo oficial y tapering mental.</p>
+              <h4 class="font-bold text-sm text-amber-200 mb-1">Torneo de Práctica en Salón</h4>
+              <p class="text-xs text-amber-100/70">Retas amistosas presenciales con público y narración para perder los nervios y llegar con confianza.</p>
             </div>
             <div class="mt-4 pt-2 border-t border-amber-800/50 text-[11px] text-amber-400 font-semibold">
               <i class="fa-solid fa-flag-checkered mr-1"></i> Sesión 9 y 10
@@ -283,10 +294,10 @@
       </div>
     </div>
 
-    <!-- PLAYER VIEW -->
+    <!-- VISTA ATLETA -->
     <div id="view-player" class="hidden space-y-6">
       
-      <!-- Athlete Profile Header -->
+      <!-- Cabecera del Perfil del Atleta -->
       <div id="player-banner" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 relative overflow-hidden">
         <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
           <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
@@ -298,7 +309,7 @@
                 <button onclick="openEditPlayerModal(false)" class="text-xs text-sky-400 hover:text-sky-300 ml-2 underline"><i class="fa-solid fa-pen"></i> Editar Perfil</button>
               </div>
               <h2 id="player-fullname" class="font-display font-extrabold text-2xl lg:text-3xl text-white"></h2>
-              <p id="player-role-desc" class="text-xs lg:text-sm text-slate-400"></p>
+              <p id="player-role-desc" class="text-xs lg:text-sm text-slate-300 font-medium"></p>
             </div>
           </div>
 
@@ -307,7 +318,7 @@
               <p class="text-xs text-slate-400 font-semibold uppercase">Cumplimiento de Actividades</p>
               <div class="flex items-baseline gap-2 mt-1">
                 <span id="player-progress-pct" class="font-display font-bold text-2xl text-emerald-400">0%</span>
-                <span id="player-tasks-completed-text" class="text-xs text-slate-400">0/0 Tareas</span>
+                <span id="player-tasks-completed-text" class="text-xs text-slate-400">0/0 Actividades</span>
               </div>
             </div>
             <div class="w-28">
@@ -319,35 +330,35 @@
         </div>
       </div>
 
-      <!-- Navigation Tabs -->
+      <!-- Pestañas de Navegación -->
       <div class="flex items-center border-b border-slate-800 overflow-x-auto gap-2 text-sm font-semibold">
         <button onclick="switchPlayerTab('tasks')" id="tab-btn-tasks" class="px-4 py-3 border-b-2 border-sky-500 text-sky-400 flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-list-check"></i> Plan de Entrenamiento & Actividades
+          <i class="fa-solid fa-list-check"></i> Actividades (En Clase y en Casa)
         </button>
         <button onclick="switchPlayerTab('kpis')" id="tab-btn-kpis" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-bullseye"></i> KPIs Técnicos
+          <i class="fa-solid fa-bullseye"></i> Mis Metas Claras
         </button>
         <button onclick="switchPlayerTab('vods')" id="tab-btn-vods" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-video"></i> VODs y Evidencias
+          <i class="fa-solid fa-video"></i> Fotos y Videos de Práctica
         </button>
         <button onclick="switchPlayerTab('mindset')" id="tab-btn-mindset" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
-          <i class="fa-solid fa-brain"></i> Psicología y Control de Tilt
+          <i class="fa-solid fa-brain"></i> Cero Enojos y Control Mental
         </button>
       </div>
 
-      <!-- TAB 1: TAREAS -->
+      <!-- PESTAÑA 1: ACTIVIDADES (SEPARADAS EN CLASE Y CASA) -->
       <div id="player-tab-tasks" class="space-y-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
           <div>
-            <h3 class="font-display font-bold text-lg text-white">Actividades Semanales (Clase y Casa)</h3>
-            <p class="text-xs text-slate-400">Marca las actividades realizadas y adjunta el enlace de captura o clip como evidencia.</p>
+            <h3 class="font-display font-bold text-lg text-white">Actividades de Entrenamiento</h3>
+            <p class="text-xs text-slate-400">Marca las tareas que ya hiciste. Para las tareas en casa, pega tu foto o clip de 15 a 20 min como prueba.</p>
           </div>
           <div class="flex items-center gap-2 flex-wrap">
-            <!-- Modality Filter -->
+            <!-- Filtro de Modalidad -->
             <select id="task-filter-modality" onchange="renderTasksTab(getCurrentPlayer())" class="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 focus:outline-none">
-              <option value="all">Todas las Modalidades</option>
-              <option value="Presencial (Taller)">Solo Clase Presencial</option>
-              <option value="En Casa (Asíncrono)">Solo En Casa (Con Evidencia)</option>
+              <option value="all">Todas las Actividades</option>
+              <option value="En Clase (Martes y Jueves - 90 min)">Solo en Clase (Martes y Jueves)</option>
+              <option value="En Casa (Con Foto o Video)">Solo en Casa (Con Foto o Video)</option>
             </select>
             <button onclick="openTaskModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
               <i class="fa-solid fa-plus"></i> Nueva Actividad
@@ -358,50 +369,50 @@
         <div id="tasks-container" class="space-y-4"></div>
       </div>
 
-      <!-- TAB 2: KPIS -->
+      <!-- PESTAÑA 2: METAS CLARAS (KPIS) -->
       <div id="player-tab-kpis" class="hidden space-y-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
           <div>
-            <h3 class="font-display font-bold text-lg text-white">Métricas de Desempeño Cuantitativo (KPIs)</h3>
-            <p class="text-xs text-slate-400">Indicadores medibles para evaluar consistencia y precisión en partida.</p>
+            <h3 class="font-display font-bold text-lg text-white">Mis Metas Claras (Fáciles de Medir)</h3>
+            <p class="text-xs text-slate-400">Objetivos simples para ver cuánto vas mejorando en cada práctica.</p>
           </div>
           <button onclick="openAddKpiModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <i class="fa-solid fa-plus"></i> Nuevo KPI
+            <i class="fa-solid fa-plus"></i> Nueva Meta
           </button>
         </div>
         <div id="kpis-container" class="grid grid-cols-1 md:grid-cols-2 gap-4"></div>
       </div>
 
-      <!-- TAB 3: VODS -->
+      <!-- PESTAÑA 3: FOTOS Y VIDEOS DE PRÁCTICA -->
       <div id="player-tab-vods" class="hidden space-y-4">
         <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
           <div>
-            <h3 class="font-display font-bold text-lg text-white">Revisión de VODs y Evidencias de Entrenamiento</h3>
-            <p class="text-xs text-slate-400">Sube enlaces a clips de Twitch, YouTube o Drive para análisis técnico de errores.</p>
+            <h3 class="font-display font-bold text-lg text-white">Fotos y Videos de Práctica en Casa</h3>
+            <p class="text-xs text-slate-400">Pega aquí el enlace de YouTube, Twitch, Google Drive o captura de pantalla para que el profesor te dé consejos.</p>
           </div>
           <button onclick="openAddVodModal()" class="px-3.5 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-            <i class="fa-solid fa-upload"></i> Subir Grabación / Clip
+            <i class="fa-solid fa-upload"></i> Subir Foto o Video
           </button>
         </div>
         <div id="vods-container" class="space-y-3"></div>
       </div>
 
-      <!-- TAB 4: PSICOLOGÍA Y ANTI-TILT -->
+      <!-- PESTAÑA 4: CERO ENOJOS Y CONTROL MENTAL -->
       <div id="player-tab-mindset" class="hidden space-y-6">
         
-        <!-- Breathing Exercise -->
+        <!-- Botón de Calma (Respiración de 4 Segundos) -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
           <div class="space-y-3">
             <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-sky-950 text-sky-400 border border-sky-800">
-              <i class="fa-solid fa-lungs mr-1"></i> Protocolo Anti-Tilt
+              <i class="fa-solid fa-heart text-sky-400 mr-1"></i> Botón de Calma
             </span>
-            <h3 class="font-display font-bold text-2xl text-white">Respiración Cuadrada (4-4-4-4)</h3>
+            <h3 class="font-display font-bold text-2xl text-white">Respiración de 4 Segundos (Mente Fría)</h3>
             <p class="text-xs text-slate-300 leading-relaxed">
-              Úsala tras perder una ronda frustrante o antes de empezar tu set competitivo. Estabiliza el ritmo cardíaco y restablece la corteza prefrontal para evitar jugadas emocionales.
+              Si perdiste una partida o te dio coraje, no golpees la mesa ni te desquites. Presiona este botón: inhala 4 segundos, mantén el aire 4, exhala 4 y espera 4. Enfriar la cabeza te hace jugar mucho mejor.
             </p>
             <div class="pt-2 flex items-center gap-3">
               <button id="btn-breathing-toggle" onclick="toggleBreathingTool()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
-                <i class="fa-solid fa-play"></i> Iniciar Guía
+                <i class="fa-solid fa-play"></i> Iniciar Botón de Calma
               </button>
               <span id="breathing-phase-text" class="text-xs font-semibold text-slate-400">En pausa</span>
             </div>
@@ -417,15 +428,19 @@
           </div>
         </div>
 
-        <!-- Emotion Journal Log -->
+        <!-- Mi Cuaderno de Partidas (Aprender en vez de enojarme) -->
         <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
-          <div class="flex items-center justify-between">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
             <div>
-              <h3 class="font-display font-bold text-lg text-white">Bitácora Cognitiva (Análisis 100% Objetivo)</h3>
-              <p class="text-xs text-slate-400">Prohibido quejarse del rival o la suerte. Registrar únicamente causa objetiva y corrección.</p>
+              <h3 class="font-display font-bold text-lg text-white flex items-center gap-2">
+                <i class="fa-solid fa-book-open text-amber-400"></i> Mi Cuaderno de Partidas (Aprender en vez de enojarme)
+              </h3>
+              <p class="text-xs text-amber-300 font-semibold mt-1">
+                ⚠️ Regla de Oro: Prohibido culpar al lag, a la suerte o al rival. Escribe qué error cometiste tú y cómo lo vas a corregir.
+              </p>
             </div>
-            <button onclick="openAddJournalModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700">
-              <i class="fa-solid fa-pen-to-square"></i> Registrar Sesión
+            <button onclick="openAddJournalModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700 whitespace-nowrap">
+              <i class="fa-solid fa-pen-to-square"></i> Anotar en mi Cuaderno
             </button>
           </div>
 
@@ -440,7 +455,7 @@
 
   <!-- MODALS -->
 
-  <!-- MODAL: AGREGAR / EDITAR TAREA -->
+  <!-- MODAL: AGREGAR / EDITAR ACTIVIDAD (EN CLASE O CASA) -->
   <div id="modal-task" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
@@ -451,54 +466,54 @@
       <form onsubmit="handleSaveTaskSubmit(event)" class="space-y-4">
         <input type="hidden" id="input-task-id">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Descripción de la Actividad</label>
-          <input id="input-task-desc" type="text" required placeholder="Ej. 15 min de Box Fights o Timed Finishing" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Qué hay que hacer? (Descripción clara sin tecnicismos)</label>
+          <input id="input-task-desc" type="text" required placeholder="Ej. 15 min practicando apuntar con escopeta o no barrerse a lo loco" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
             <label class="block text-xs font-semibold text-slate-300 mb-1">Semana</label>
             <select id="select-task-week" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-              <option value="1">Semana 1 (Diagnóstico)</option>
-              <option value="2">Semana 2 (Mecánicas)</option>
-              <option value="3">Semana 3 (Estrategia)</option>
-              <option value="4">Semana 4 (Resiliencia)</option>
-              <option value="5">Semana 5 (Simulacro)</option>
+              <option value="1">Semana 1 (Acomodar controles)</option>
+              <option value="2">Semana 2 (Puntería y reflejos)</option>
+              <option value="3">Semana 3 (Estrategia y equipo)</option>
+              <option value="4">Semana 4 (Mente fría y calma)</option>
+              <option value="5">Semana 5 (Torneo de práctica)</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Modalidad</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">¿Dónde se hace?</label>
             <select id="select-task-modality" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-              <option value="Presencial (Taller)">Presencial (Taller 90m)</option>
-              <option value="En Casa (Asíncrono)">En Casa (Asíncrono)</option>
+              <option value="En Clase (Martes y Jueves - 90 min)">En Clase (Martes y Jueves - 90 min)</option>
+              <option value="En Casa (Con Foto o Video)">En Casa (Con Foto o Video)</option>
             </select>
           </div>
         </div>
 
         <div class="grid grid-cols-2 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Categoría</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Tipo de práctica</label>
             <select id="select-task-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-              <option value="Mecánicas / Micro">Mecánicas / Micro</option>
-              <option value="Táctica / Macro">Táctica / Macro</option>
-              <option value="Mindset / Resiliencia">Mindset / Resiliencia</option>
-              <option value="VOD Review / Análisis">VOD Review / Análisis</option>
+              <option value="Puntería y Reflejos">Puntería y Reflejos</option>
+              <option value="Estrategia y Equipo">Estrategia y Equipo</option>
+              <option value="Mente Fría y Calma">Mente Fría y Calma</option>
+              <option value="Revisión de Jugadas">Revisión de Jugadas</option>
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Importancia</label>
             <select id="select-task-priority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-              <option value="Alta">Alta</option>
-              <option value="Media" selected>Media</option>
-              <option value="Baja">Baja</option>
+              <option value="Alta">Muy Importante</option>
+              <option value="Media" selected>Normal</option>
+              <option value="Baja">Práctica Extra</option>
             </select>
           </div>
         </div>
 
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">URL de Evidencia (Captura / Clip / YouTube / Drive)</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Link de tu Foto o Video (Captura de pantalla, YouTube o Drive)</label>
           <input id="input-task-evidence" type="url" placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-          <p class="text-[11px] text-slate-500 mt-1">Obligatorio para tareas en casa que requieran validación.</p>
+          <p class="text-[11px] text-slate-500 mt-1">Obligatorio para retos en casa (15-20 min) para comprobar que practicaste.</p>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
@@ -509,18 +524,18 @@
     </div>
   </div>
 
-  <!-- MODAL: REGISTRAR / EDITAR ATLETA -->
+  <!-- MODAL: REGISTRAR / EDITAR PERFIL DE ATLETA -->
   <div id="modal-player" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 id="modal-player-title" class="font-display font-bold text-lg text-white">Expediente de Atleta</h3>
+        <h3 id="modal-player-title" class="font-display font-bold text-lg text-white">Perfil del Atleta</h3>
         <button onclick="closeModal('modal-player')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <form onsubmit="handleSavePlayerSubmit(event)" class="space-y-4">
         <input type="hidden" id="input-player-id">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre Completo</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre Completo del Jugador</label>
           <input id="input-player-name" type="text" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
         </div>
         <div class="grid grid-cols-2 gap-3">
@@ -534,47 +549,47 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Arquetipo Psicológico</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Forma de ser al jugar</label>
             <select id="select-player-personality" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-              <option value="Dinámico / Extrovertido">Dinámico / Extrovertido</option>
-              <option value="Analítico / Introvertido">Analítico / Introvertido</option>
-              <option value="Estratégico / Observador">Estratégico / Observador</option>
+              <option value="Activo y Rápido">Activo y Rápido</option>
+              <option value="Tranquilo y Paciente">Tranquilo y Paciente</option>
+              <option value="Atento y Observador">Atento y Observador</option>
             </select>
           </div>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Rol / Especialidad Táctica</label>
-          <input id="input-player-role" type="text" required placeholder="Ej. IGL & Piece Control / Spacing & Neutral" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Enfoque Principal (Meta simple y clara)</label>
+          <input id="input-player-role" type="text" required placeholder="Ej. Construcción rápida y escopeta / Defender con paciencia" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('modal-player')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar Atleta</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar Perfil</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: AGREGAR KPI -->
+  <!-- MODAL: AGREGAR META CLARA (KPI) -->
   <div id="modal-kpi" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-display font-bold text-lg text-white">Nuevo KPI de Rendimiento</h3>
+        <h3 class="font-display font-bold text-lg text-white">Nueva Meta Clara</h3>
         <button onclick="closeModal('modal-kpi')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <form onsubmit="handleSaveKpiSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre de la Métrica</label>
-          <input id="input-kpi-title" type="text" required placeholder="Ej. Headshot Ratio o % Opciones Out of Shield" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Qué vamos a medir? (Nombre claro sin tecnicismos)</label>
+          <input id="input-kpi-title" type="text" required placeholder="Ej. Puntería con escopeta de cerca o Quitar balón sin barrerse" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
         </div>
         <div class="grid grid-cols-3 gap-3">
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Valor Actual</label>
-            <input id="input-kpi-current" type="number" step="any" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Nivel Hoy</label>
+            <input id="input-kpi-current" type="number" step="any" required value="0" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
           </div>
           <div>
-            <label class="block text-xs font-semibold text-slate-300 mb-1">Meta</label>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Meta Deseada</label>
             <input id="input-kpi-target" type="number" step="any" required class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
           </div>
           <div>
@@ -585,76 +600,83 @@
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('modal-kpi')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500">Guardar KPI</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500">Guardar Meta</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: AGREGAR VOD -->
+  <!-- MODAL: AGREGAR FOTO O VIDEO DE PRÁCTICA -->
   <div id="modal-vod" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-display font-bold text-lg text-white">Registro de VOD / Evidencia</h3>
+        <h3 class="font-display font-bold text-lg text-white">Subir Foto o Video de Práctica</h3>
         <button onclick="closeModal('modal-vod')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
       </div>
 
       <form onsubmit="handleSaveVodSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Título de la Repetición / Clip</label>
-          <input id="input-vod-title" type="text" required placeholder="Ej. Derrota en Overtime / Clip de 3 Techs exitosos" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Título de la práctica o jugada</label>
+          <input id="input-vod-title" type="text" required placeholder="Ej. Récord de puntería en casa o Jugada limpia sin recibir daño" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">URL (YouTube / Twitch / Drive / Clip)</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Enlace (YouTube, Drive, Imgur, Twitch)</label>
           <input id="input-vod-url" type="url" required placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-purple-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Notas del Jugador (¿Qué jugada o error debemos revisar?)</label>
-          <textarea id="input-vod-notes" rows="3" placeholder="Describe brevemente el momento clave..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500"></textarea>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Qué practicaste o en qué duda quieres que te ayude el profe?</label>
+          <textarea id="input-vod-notes" rows="3" placeholder="Explica brevemente tu jugada..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500"></textarea>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('modal-vod')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold hover:bg-purple-500">Guardar VOD</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold hover:bg-purple-500">Guardar Foto o Video</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- MODAL: AGREGAR BITÁCORA EMOCIONAL -->
+  <!-- MODAL: MI CUADERNO DE PARTIDAS (APRENDER EN VEZ DE ENOJARME) -->
   <div id="modal-journal" class="hidden fixed inset-0 z-50 bg-black/75 backdrop-blur-sm flex items-center justify-center p-4">
     <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
       <div class="flex items-center justify-between border-b border-slate-800 pb-3">
-        <h3 class="font-display font-bold text-lg text-white">Bitácora Cognitiva</h3>
+        <div>
+          <h3 class="font-display font-bold text-lg text-white">Mi Cuaderno de Partidas</h3>
+          <p class="text-[11px] text-amber-400 font-semibold">Aprender en vez de enojarme</p>
+        </div>
         <button onclick="closeModal('modal-journal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <div class="bg-amber-950/40 border border-amber-800/50 p-3 rounded-xl text-xs text-amber-200">
+        <i class="fa-solid fa-triangle-exclamation mr-1"></i> <strong>Prohibido culpar al lag, a la suerte o al rival.</strong> Escribe con sinceridad qué error cometiste tú y cómo lo vas a corregir.
       </div>
 
       <form onsubmit="handleSaveJournalSubmit(event)" class="space-y-4">
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Estado Post-Partida</label>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Cómo me sentí al terminar la partida?</label>
           <select id="select-journal-mood" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
-            <option value="Enfocado y Satisfecho">🟢 Enfocado y Satisfecho</option>
-            <option value="Frustrado por Errores">🔴 Frustrado por Errores</option>
-            <option value="Neutro / Trabajo Cumplido">🟡 Neutro / Trabajo Cumplido</option>
-            <option value="Fatiga Cognitiva">🟣 Fatiga Cognitiva</option>
+            <option value="🟢 Tranquilo y con ganas de mejorar">🟢 Tranquilo y con ganas de mejorar</option>
+            <option value="🔴 Molesto o frustrado por un error">🔴 Molesto o frustrado por un error</option>
+            <option value="🟡 Concentrado y con mente fría">🟡 Concentrado y con mente fría</option>
+            <option value="🟣 Cansado o desconcentrado">🟣 Cansado o desconcentrado</option>
           </select>
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Hecho Objetivo / Reto (Sin excusas)</label>
-          <input id="input-journal-trigger" type="text" required placeholder="Ej. Pérdida de posesión en min 80 o fallar la edición en pared" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Qué error cometí yo en la partida? (Sin culpar a nadie más)</label>
+          <input id="input-journal-trigger" type="text" required placeholder="Ej. Me apresuré a disparar antes de apuntar bien, o me barrí cuando no debía" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
         </div>
         <div>
-          <label class="block text-xs font-semibold text-slate-300 mb-1">Ajuste Técnico / Respuesta Inmediata</label>
-          <textarea id="input-journal-action" rows="2" required placeholder="Ej. Pausa táctica de 2 segundos y respiración 4-4-4-4 antes de la siguiente ronda" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></textarea>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">¿Cómo lo voy a corregir en la siguiente partida?</label>
+          <textarea id="input-journal-action" rows="2" required placeholder="Ej. Esperar un segundo antes de tirar, aguantar la posición y respirar hondo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></textarea>
         </div>
-        <div class="flex items-center gap-2">
-          <input id="check-journal-breathing" type="checkbox" class="w-4 h-4 rounded bg-slate-950 border-slate-800 text-sky-500">
-          <label for="check-journal-breathing" class="text-xs text-slate-300">¿Utilicé el protocolo de respiración 4-4-4-4?</label>
+        <div class="flex items-center gap-2 pt-1">
+          <input id="check-journal-breathing" type="checkbox" class="w-4 h-4 rounded bg-slate-950 border-slate-800 text-sky-500 cursor-pointer">
+          <label for="check-journal-breathing" class="text-xs text-slate-300 cursor-pointer">¿Usé el Botón de Calma (respiración de 4 segundos)?</label>
         </div>
 
         <div class="flex justify-end gap-2 pt-2">
           <button type="button" onclick="closeModal('modal-journal')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
-          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar Bitácora</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar en Cuaderno</button>
         </div>
       </form>
     </div>
@@ -672,7 +694,7 @@
       </div>
 
       <p class="text-xs text-slate-400">
-        Conecta este sistema con tu base de datos en Supabase para sincronizar automáticamente el progreso en tiempo real entre el Coach y los Atletas.
+        Conecta este sistema con tu base de datos en Supabase para sincronizar automáticamente el progreso en tiempo real entre el profesor y los atletas.
       </p>
 
       <form onsubmit="handleSaveSupabaseConfig(event)" class="space-y-4">
@@ -688,11 +710,11 @@
 
         <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 flex items-center justify-between">
           <div>
-            <p class="text-xs font-bold text-white">Cargar Roster y Plan Inicial en Supabase</p>
-            <p class="text-[11px] text-slate-400">Inserta las tareas y los 6 atletas de la foto en la base de datos si está vacía.</p>
+            <p class="text-xs font-bold text-white">Limpiar y Cargar Roster Oficial en Supabase</p>
+            <p class="text-[11px] text-slate-400">Borra datos viejos y sube los 6 atletas limpios con avance en 0% a la nube.</p>
           </div>
           <button type="button" onclick="seedInitialDataToSupabase()" class="px-3 py-1.5 bg-emerald-700 hover:bg-emerald-600 text-white rounded-lg text-xs font-bold transition">
-            Sembrar
+            Sembrar en Nube
           </button>
         </div>
 
@@ -704,71 +726,71 @@
     </div>
   </div>
 
-  <!-- TOAST NOTIFICATIONS -->
+  <!-- CONTENEDOR DE NOTIFICACIONES TOAST -->
   <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2"></div>
 
   <!-- FOOTER -->
   <footer class="border-t border-slate-800 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
-    InterHalcones Esports · Sistema de Alto Rendimiento Deportivo Rumbo al Torneo del 24 de Octubre
+    InterHalcones Esports · Equipo Rumbo al Torneo del 24 de Octubre · Aprender, mejorar y jugar en equipo
   </footer>
 
-  <!-- SCRIPT LOGIC -->
+  <!-- LÓGICA JAVASCRIPT -->
   <script>
-    // DEFAULT CONFIGURATION (Can be pre-filled with your Supabase credentials)
-    const DEFAULT_CONFIG = {
-      supabaseUrl: '', 
-      supabaseAnonKey: ''
+    // =========================================================================
+    // 🔑 CONFIGURACIÓN DIRECTA DE SUPABASE EN EL CÓDIGO
+    // Pega aquí tu URL y Anon Key pública para que no dependa de inputs manuales:
+    // =========================================================================
+    const SUPABASE_CONFIG = {
+      url: 'https://wiwezugpvudqqwijmiic.supabase.co/rest/v1/',      // Coloca aquí tu URL: ej. 'https://xyzcompany.supabase.co'
+      anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Indpd2V6dWdwdnVkcXF3aWptaWljIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTA2NDc5MjcsImV4cCI6MjEwNjIyMzkyN30.hY2q2B1HaKKVDkLR3uZbpG_LOI7r3Bkob-9V_2_oVSM'  // Coloca aquí tu Anon Key: ej. 'eyJhbGciOiJIUzI1NiIsInR5c...'
     };
 
-    // 1. ROSTER OFICIAL DE LA FOTO CON PLAN DE ENTRENAMIENTO COMPLETO (ON-SITE & CASA)
+    // ROSTER OFICIAL DE 6 ATLETAS: 100% LIMPIO DESDE CERO (SIN TAREAS COMPLETADAS NI DATOS DE MUESTRA)
     const initialPlayersData = [
       {
         id: 'andres',
         name: 'ANDRÉS CABRALES HERNANDEZ',
         game: 'Fortnite',
-        role: 'Battle Royale · IGL & Piece Control Ofensivo',
-        personality: 'Dinámico / Extrovertido',
+        role: 'Fortnite · Rapidez de construcción y puntería de escopeta',
+        personality: 'Activo y Rápido',
         badgeColor: 'bg-purple-600',
         tasks: [
-          { id: 't_a1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Auditoría de bindings y benchmark en Edit Course cronometrado', priority: 'Alta', evidence: '', done: true },
-          { id: 't_a2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: '20 min diarios en Aim Trainer (Kovaaks/Creativo) con captura de récord', priority: 'Alta', evidence: 'https://imgur.com/evidence_andres_1', done: true },
-          { id: 't_a3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Scrims presenciales en Dúo con Ángel simulando stacked endgames', priority: 'Alta', evidence: '', done: false },
-          { id: 't_a4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: '10 rondas de Box Fights grabando clip de 3 entradas sin recibir daño', priority: 'Media', evidence: '', done: false },
-          { id: 't_a5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Análisis en proyector de rotaciones en tormenta y timing de push', priority: 'Alta', evidence: '', done: false },
-          { id: 't_a6', week: 3, modality: 'En Casa (Asíncrono)', category: 'Táctica / Macro', desc: 'Subir VOD de ranked dúo evaluando la claridad de los callouts de IGL', priority: 'Media', evidence: '', done: false },
-          { id: 't_a7', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Hándicap mental: iniciar scrim presencial con 50 HP y escasez de mats', priority: 'Alta', evidence: '', done: false },
-          { id: 't_a8', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Simulacro de torneo interno con casteo oficial y tabla de puntuación', priority: 'Alta', evidence: '', done: false }
+          { id: 't_a1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar botones del control y hacer una prueba de rapidez levantando paredes y rampas con el profesor', priority: 'Alta', evidence: '', done: false },
+          { id: 't_a2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Practicar de 15 a 20 minutos disparando con escopeta a corta distancia. Pegar enlace de foto o clip de tu práctica', priority: 'Alta', evidence: '', done: false },
+          { id: 't_a3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Retas en parejas con Ángel: aprender a poner paredes rápido para protegerse y disparar juntos al mismo enemigo', priority: 'Alta', evidence: '', done: false },
+          { id: 't_a4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Practicar 20 minutos en casa: disparar con la escopeta y poner pared de inmediato para no recibir daño. Pegar enlace de video', priority: 'Media', evidence: '', done: false },
+          { id: 't_a5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Revisión en pantalla con el profesor: aprender a caminar dentro del círculo sin regalar ventajas al rival', priority: 'Alta', evidence: '', done: false },
+          { id: 't_a6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Jugar 2 partidas en casa con Ángel cuidándose la espalda y avisando dónde están los rivales. Pegar enlace de video', priority: 'Media', evidence: '', done: false },
+          { id: 't_a7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Práctica de mente fría: empezar la reta con poca vida para aprender a mantener la calma y respirar con el Botón de Calma', priority: 'Alta', evidence: '', done: false },
+          { id: 't_a8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Torneo de práctica en el taller con público y narración para perder los nervios y llegar listos al 24 de Octubre', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_a1', title: 'Tiempo en Mapa de Edit Course', current: 2.50, target: 2.15, unit: 'min' },
-          { id: 'k_a2', title: 'Headshot Ratio con Escopeta', current: 52, target: 70, unit: '%' }
+          { id: 'k_a1', title: 'Puntería con escopeta de cerca', current: 0, target: 70, unit: '%' },
+          { id: 'k_a2', title: 'Tiempo en circuito de construcción rápida', current: 0, target: 2.15, unit: 'min' }
         ],
-        vods: [
-          { id: 'v_a1', title: 'Ranked Dúo Champion - Clutch 2v1', url: 'https://youtube.com', notes: 'Buen piece control pero me sobre-extendí con poca vida.', coach_feedback: 'Mantén la regla del cono protector siempre que hagas reset.' }
-        ],
-        journals: [
-          { id: 'j_a1', session_date: '2026-09-24', session_outcome: 'Enfocado y Satisfecho', tilt_trigger: 'Muerte temprana por falta de escopeta en caída', objective_response: 'Pausé con respiración 4-4-4-4 y ajusté la ruta al cofre secundario.', box_breathing_used: true }
-        ]
+        vods: [],
+        journals: []
       },
       {
         id: 'angel',
         name: 'ÁNGEL EDUARDO LEON ARRIETA',
         game: 'Fortnite',
-        role: 'Battle Royale · Support Fragger & Aim Tracking',
-        personality: 'Analítico / Observador',
+        role: 'Fortnite · Puntería a media distancia y jugar en equipo',
+        personality: 'Atento y Observador',
         badgeColor: 'bg-purple-600',
         tasks: [
-          { id: 't_an1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Calibración de crosshair placement y sinergia de inventario con Andrés', priority: 'Alta', evidence: '', done: true },
-          { id: 't_an2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Rutina de tracking de media distancia con fusil (captura de % de acierto)', priority: 'Alta', evidence: 'https://imgur.com/evidence_angel_1', done: true },
-          { id: 't_an3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Drills de doble presión a paredes rivales y sincronización de disparos', priority: 'Alta', evidence: '', done: false },
-          { id: 't_an4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Subir clip corto de 20s castigando a rivales volando o en rotación abierta', priority: 'Media', evidence: '', done: false },
-          { id: 't_an5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Análisis de posicionamiento en high-ground y protección de espaldas', priority: 'Media', evidence: '', done: false },
-          { id: 't_an6', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Simulación de clutch: ganar situación 1v2 tras caída fingida de Andrés', priority: 'Alta', evidence: '', done: false },
-          { id: 't_an7', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Simulacro oficial de 5 partidas con puntuación del torneo', priority: 'Alta', evidence: '', done: false }
+          { id: 't_an1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar botones del control y ponerse de acuerdo con Andrés sobre qué armas y curaciones llevará cada uno', priority: 'Alta', evidence: '', done: false },
+          { id: 't_an2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Práctica de 15 a 20 minutos en casa disparando con fusil a rivales que van corriendo a media distancia. Pegar foto o video', priority: 'Alta', evidence: '', done: false },
+          { id: 't_an3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Práctica con el profesor: coordinar disparos para tirar al mismo rival al mismo tiempo y bajarlo rápido', priority: 'Alta', evidence: '', done: false },
+          { id: 't_an4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Grabar clip corto de 20 segundos disparando con fusil sin apresurarse y acertando los tiros a distancia. Pegar enlace', priority: 'Media', evidence: '', done: false },
+          { id: 't_an5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Aprender a ganar techos y cerros para tener mejor visión del mapa y cuidar la espalda de Andrés', priority: 'Media', evidence: '', done: false },
+          { id: 't_an6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Práctica en casa: marcar con el botón a los enemigos antes de disparar para no alertarlos antes de tiempo. Pegar foto o video', priority: 'Media', evidence: '', done: false },
+          { id: 't_an7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Práctica de rescate: qué hacer si derriban a tu compañero sin entrar en pánico y usando el Botón de Calma', priority: 'Alta', evidence: '', done: false },
+          { id: 't_an8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Reta final de 5 partidas con el equipo para medir coordinación y juego en equipo', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_an1', title: 'Efectividad en Aim Tracking (Media Distancia)', current: 62, target: 80, unit: '%' },
-          { id: 'k_an2', title: 'Daño Asistido a Rivales en Dúo', current: 450, target: 650, unit: 'pts' }
+          { id: 'k_an1', title: 'Puntería con fusil a media distancia', current: 0, target: 80, unit: '%' },
+          { id: 'k_an2', title: 'Puntos de daño ayudando al compañero', current: 0, target: 650, unit: 'pts' }
         ],
         vods: [],
         journals: []
@@ -777,21 +799,22 @@
         id: 'eduardo',
         name: 'EDUARDO TADEO HERNÁNDEZ MARTINEZ',
         game: 'Super Smash Bros',
-        role: 'Fighting 1v1 · Spacing, Movilidad y Neutral Game',
-        personality: 'Dinámico / Extrovertido',
+        role: 'Super Smash Bros · Moverse rápido, esquivar y no desesperarse al atacar',
+        personality: 'Activo y Rápido',
         badgeColor: 'bg-red-600',
         tasks: [
-          { id: 't_ed1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Auditoría de opciones Out of Shield (OoS) y espaciado de ataques seguros', priority: 'Alta', evidence: '', done: true },
-          { id: 't_ed2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: '15 min diarios de Fast Fall, Short Hop y Teching en Modo Entrenamiento', priority: 'Alta', evidence: '', done: false },
-          { id: 't_ed3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: '1v1 presencial contra Samuel forzando ventaja sin sobre-extenderse', priority: 'Alta', evidence: '', done: false },
-          { id: 't_ed4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Grabar clip de 2 Techs en pared de escenario (tech recovery) bajo presión', priority: 'Media', evidence: '', done: false },
-          { id: 't_ed5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Revisión en proyector de neutral game: detectar hábitos en salto o rolls', priority: 'Alta', evidence: '', done: false },
-          { id: 't_ed6', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Hándicap mental: iniciar sets de práctica perdiendo 1 stock (3 vs 2 stocks)', priority: 'Alta', evidence: '', done: false },
-          { id: 't_ed7', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Simulacro de torneo presencial Best of 5 bajo presión con casteo', priority: 'Alta', evidence: '', done: false }
+          { id: 't_ed1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar botones del control (quitar salto en la palanca si estorba) y practicar cubrirse con escudo', priority: 'Alta', evidence: '', done: false },
+          { id: 't_ed2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Práctica de 15 a 20 minutos en modo entrenamiento: saltar y caer rápido sin trabarse con los dedos. Pegar enlace de foto o clip', priority: 'Alta', evidence: '', done: false },
+          { id: 't_ed3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Retas 1 contra 1 con Samuel: enfocarse en esquivar los golpes del rival antes de lanzarse a golpear', priority: 'Alta', evidence: '', done: false },
+          { id: 't_ed4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Grabar clip corto esquivando un ataque fuerte del rival y respondiendo de inmediato con un golpe seguro. Pegar enlace', priority: 'Media', evidence: '', done: false },
+          { id: 't_ed5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Revisión en pantalla de partidas grabadas: identificar si estamos rodando por desesperación en vez de mantener la posición', priority: 'Alta', evidence: '', done: false },
+          { id: 't_ed6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Jugar 3 partidas con la meta de no atacar a lo loco; esperar a que el rival tire su golpe primero. Pegar foto o video', priority: 'Media', evidence: '', done: false },
+          { id: 't_ed7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Práctica de mente fría: empezar la reta perdiendo por 1 vida y remontar con paciencia usando respiración de 4 segundos', priority: 'Alta', evidence: '', done: false },
+          { id: 't_ed8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Torneo de práctica en vivo jugando una partida al que gane 3 de 5 rondas frente a los compañeros', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_ed1', title: 'Efectividad en Opciones Out of Shield', current: 54, target: 75, unit: '%' },
-          { id: 'k_ed2', title: 'Tasa de Conversión en Neutral', current: 48, target: 70, unit: '%' }
+          { id: 'k_ed1', title: 'Esquivar y responder rápido con éxito', current: 0, target: 75, unit: '%' },
+          { id: 'k_ed2', title: 'Ataques conectados sin regalar ventajas', current: 0, target: 70, unit: '%' }
         ],
         vods: [],
         journals: []
@@ -800,21 +823,22 @@
         id: 'emiliano',
         name: 'JESÚS EMILIANO ONTIVEROS GUERRERO',
         game: 'EAFC',
-        role: 'Simulación 1v1 · Defensa Manual & Salida Rápida',
-        personality: 'Estratégico / Observador',
+        role: 'EAFC · Defender con paciencia, aguantar la posición y no regalar contragolpes',
+        personality: 'Tranquilo y Paciente',
         badgeColor: 'bg-blue-600',
         tasks: [
-          { id: 't_em1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Auditoría de cámara, sliders y test de defensa manual (L2 Jockeying)', priority: 'Alta', evidence: '', done: true },
-          { id: 't_em2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: '15 min diarios de Timed Finishing verde en arena con captura de récord', priority: 'Alta', evidence: '', done: false },
-          { id: 't_em3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Drills de intercepción prohibiendo barridas; solo cambio con stick derecho', priority: 'Alta', evidence: '', done: false },
-          { id: 't_em4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Táctica / Macro', desc: 'Grabar clip de 3 transiciones limpias saliendo al contraataque', priority: 'Media', evidence: '', done: false },
-          { id: 't_em5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Revisión en pantalla: neutralizar centros al 2do poste y tiros colocados', priority: 'Alta', evidence: '', done: false },
-          { id: 't_em6', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Escenario min 70: entrar perdiendo 1-0 para remontar sin desesperar', priority: 'Alta', evidence: '', done: false },
-          { id: 't_em7', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Simulacro presencial Best of 3 en formato oficial de torneo', priority: 'Alta', evidence: '', done: false }
+          { id: 't_em1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar la cámara del estadio para ver todo el campo y practicar aguantar la posición con el botón defensivo sin barrerse a lo loco', priority: 'Alta', evidence: '', done: false },
+          { id: 't_em2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Práctica de 15 a 20 minutos en modo práctica: tirar a portería con calma y definir a un lado del portero. Pegar foto o video', priority: 'Alta', evidence: '', done: false },
+          { id: 't_em3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Ejercicios con el profesor: defender la portería aguantando el espacio sin regalar contragolpes ni cometer faltas tontas', priority: 'Alta', evidence: '', done: false },
+          { id: 't_em4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Grabar clip corto de una jugada donde robes el balón limpio con el cuerpo y salgas tocando con pase seguro. Pegar enlace', priority: 'Media', evidence: '', done: false },
+          { id: 't_em5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Revisión en pantalla: aprender a tapar centros al área y no dejar espacio para que tiren de lejos', priority: 'Alta', evidence: '', done: false },
+          { id: 't_em6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Jugar 2 partidos completos concentrado en no apretar el botón de correr al momento de defender. Pegar foto del resultado', priority: 'Media', evidence: '', done: false },
+          { id: 't_em7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Reto de remontada: entrar perdiendo 1-0 en el minuto 70 y empatar jugando con paciencia y sin enojarse', priority: 'Alta', evidence: '', done: false },
+          { id: 't_em8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Partido de práctica oficial con narración en vivo en el taller para medir nervios rumbo al torneo', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_em1', title: 'Tasa de Entradas Defensivas Limpias', current: 65, target: 82, unit: '%' },
-          { id: 'k_em2', title: 'Goles Concedidos por Partido', current: 2.1, target: 1.0, unit: 'goles' }
+          { id: 'k_em1', title: 'Quitar el balón limpio sin barrerse a lo loco', current: 0, target: 82, unit: '%' },
+          { id: 'k_em2', title: 'Goles recibidos por partido', current: 0, target: 1.0, unit: 'goles' }
         ],
         vods: [],
         journals: []
@@ -823,21 +847,22 @@
         id: 'humberto',
         name: 'HUMBERTO DE LA PAZ SORIANO',
         game: 'Mario Kart',
-        role: 'Carreras · Trazados Óptimos y Gestión Defensiva de Ítems',
-        personality: 'Analítico / Introvertido',
+        role: 'Mario Kart · No salirse de la pista, agarrar turbos en curvas y guardar caparazones atrás para defenderse',
+        personality: 'Tranquilo y Paciente',
         badgeColor: 'bg-orange-600',
         tasks: [
-          { id: 't_h1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Toma de tiempos base contrarreloj (Time Trials) en las 4 pistas oficiales', priority: 'Alta', evidence: '', done: true },
-          { id: 't_h2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Dominar Ultra Mini-Turbos morados en curvas cerradas + captura de récord', priority: 'Alta', evidence: '', done: false },
-          { id: 't_h3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Drills de retención de plátano/caparazón trasero en 1er lugar sin pánico', priority: 'Alta', evidence: '', done: false },
-          { id: 't_h4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Grabar clip de 1 vuelta perfecta sin tocar césped ni recibir daño', priority: 'Media', evidence: '', done: false },
-          { id: 't_h5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Análisis de atajos con champiñón y timing de frenado táctico en curvas', priority: 'Media', evidence: '', done: false },
-          { id: 't_h6', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Simulación de comeback: iniciar en última posición y remontar con cajas dobles', priority: 'Alta', evidence: '', done: false },
-          { id: 't_h7', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Grand Prix de 4 pistas en vivo con conteo oficial de puntos', priority: 'Alta', evidence: '', done: false }
+          { id: 't_h1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar botones del control y tomar tiempos de prueba en las 4 pistas que se jugarán en el torneo', priority: 'Alta', evidence: '', done: false },
+          { id: 't_h2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Reto de 15 a 20 minutos en contrarreloj: tomar curvas cerradas sin chocar con las paredes. Pegar foto de tu tiempo', priority: 'Alta', evidence: '', done: false },
+          { id: 't_h3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Práctica de defensa: cuando vayas en primer lugar, mantener siempre un plátano o caparazón atrás para protegerte', priority: 'Alta', evidence: '', done: false },
+          { id: 't_h4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Grabar clip de 1 vuelta completa sacando turbos en cada curva sin tocar el pasto ni la arena. Pegar enlace de video', priority: 'Media', evidence: '', done: false },
+          { id: 't_h5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Aprender a usar los atajos con champiñones y frenar con cuidado en curvas difíciles sin caer al vacío', priority: 'Media', evidence: '', done: false },
+          { id: 't_h6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Práctica en casa: remontar una carrera desde el último lugar agarrando poderes dobles sin desesperarse. Pegar foto o video', priority: 'Media', evidence: '', done: false },
+          { id: 't_h7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Práctica de mente fría: qué hacer cuando te pega un caparazón azul cerca de la meta para no perder el control ni soltar el volante', priority: 'Alta', evidence: '', done: false },
+          { id: 't_h8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Copa completa de 4 carreras en el taller con conteo oficial de puntos como en el torneo', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_h1', title: 'Consistencia de Top 3 en Partidas', current: 65, target: 88, unit: '%' },
-          { id: 'k_h2', title: 'Trazado Óptimo en Contrarreloj', current: 84, target: 96, unit: '%' }
+          { id: 'k_h1', title: 'Carreras terminando en los primeros 3 lugares', current: 0, target: 88, unit: '%' },
+          { id: 'k_h2', title: 'Curvas tomadas con turbo sin salirse de la pista', current: 0, target: 96, unit: '%' }
         ],
         vods: [],
         journals: []
@@ -846,44 +871,97 @@
         id: 'samuel',
         name: 'SAMUEL SIFUENTES SIFUENTES',
         game: 'Super Smash Bros',
-        role: 'Fighting 1v1 · Edgeguarding, Castigo y Ledge Trapping',
-        personality: 'Analítico / Introvertido',
+        role: 'Super Smash Bros · Esperar el error del rival y no dejarlo subir a la plataforma',
+        personality: 'Atento y Observador',
         badgeColor: 'bg-red-600',
         tasks: [
-          { id: 't_s1', week: 1, modality: 'Presencial (Taller)', category: 'Mecánicas / Micro', desc: 'Diagnóstico de cobertura de las 4 opciones de escape en orilla', priority: 'Alta', evidence: '', done: true },
-          { id: 't_s2', week: 1, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Práctica de timing de intercepciones fuera del escenario (Bair) + captura', priority: 'Alta', evidence: '', done: false },
-          { id: 't_s3', week: 2, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Best of 5 contra Eduardo con regla de no repetir la misma opción defensiva', priority: 'Alta', evidence: '', done: false },
-          { id: 't_s4', week: 2, modality: 'En Casa (Asíncrono)', category: 'Mecánicas / Micro', desc: 'Grabar clip de 2 ledge-traps convertidos en KO a menos de 80% de daño', priority: 'Media', evidence: '', done: false },
-          { id: 't_s5', week: 3, modality: 'Presencial (Taller)', category: 'VOD Review / Análisis', desc: 'Análisis de micro-hábitos: eliminar rolls involuntarios al recibir presión', priority: 'Alta', evidence: '', done: false },
-          { id: 't_s6', week: 4, modality: 'Presencial (Taller)', category: 'Mindset / Resiliencia', desc: 'Simulación de remontada: jugar con desventaja 1 stock vs 2 stocks', priority: 'Alta', evidence: '', done: false },
-          { id: 't_s7', week: 5, modality: 'Presencial (Taller)', category: 'Táctica / Macro', desc: 'Gran final simulada con casteo y manejo de pausas entre partidas', priority: 'Alta', evidence: '', done: false }
+          { id: 't_s1', week: 1, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Puntería y Reflejos', desc: 'Acomodar botones del control y practicar colocarse en la orilla para que el rival no suba fácil a la plataforma', priority: 'Alta', evidence: '', done: false },
+          { id: 't_s2', week: 1, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Reto de 15 a 20 minutos en modo práctica: golpear al rival en el aire en el momento justo cuando intente volver. Pegar foto o video', priority: 'Alta', evidence: '', done: false },
+          { id: 't_s3', week: 2, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Retas con Eduardo: esperar con paciencia a que el rival ataque primero y responder cuando falle su golpe', priority: 'Alta', evidence: '', done: false },
+          { id: 't_s4', week: 2, modality: 'En Casa (Con Foto o Video)', category: 'Puntería y Reflejos', desc: 'Grabar clip corto de una partida impidiendo que el rival regrese a la plataforma y logrando sacarlo del escenario. Pegar enlace', priority: 'Media', evidence: '', done: false },
+          { id: 't_s5', week: 3, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Revisión de Jugadas', desc: 'Revisión de partidas: detectar mañas que repetimos al recibir golpes y cambiarlas para no ser predecibles', priority: 'Alta', evidence: '', done: false },
+          { id: 't_s6', week: 3, modality: 'En Casa (Con Foto o Video)', category: 'Estrategia y Equipo', desc: 'Jugar 3 partidas online con la meta de no saltar fuera de la plataforma si no es seguro. Pegar foto o video', priority: 'Media', evidence: '', done: false },
+          { id: 't_s7', week: 4, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Mente Fría y Calma', desc: 'Práctica de mente fría: jugar perdiendo por 1 vida y remontar manteniendo la calma con respiración de 4 segundos', priority: 'Alta', evidence: '', done: false },
+          { id: 't_s8', week: 5, modality: 'En Clase (Martes y Jueves - 90 min)', category: 'Estrategia y Equipo', desc: 'Gran final simulada en el taller con público y manejo de pausas entre partidas para no desconcentrarse', priority: 'Alta', evidence: '', done: false }
         ],
         kpis: [
-          { id: 'k_s1', title: 'Tasa de Conversión en Orilla (Ledge-Trap)', current: 60, target: 82, unit: '%' },
-          { id: 'k_s2', title: 'Éxito en Intercepciones Fuera de Stage', current: 52, target: 75, unit: '%' }
+          { id: 'k_s1', title: 'No dejar subir al rival a la plataforma', current: 0, target: 82, unit: '%' },
+          { id: 'k_s2', title: 'Golpes acertados cuando el rival comete un error', current: 0, target: 75, unit: '%' }
         ],
         vods: [],
         journals: []
       }
     ];
 
-    // APPLICATION STATE
+    // =========================================================================
+    // GESTIÓN DE ALMACENAMIENTO LIMPIO Y ANTICORRUPCIÓN DE DATOS VIEJOS
+    // =========================================================================
+    const CURRENT_STORAGE_KEY = 'ih_roster_clean_v5';
+
+    function isOldJargonPresent(playersList) {
+      if (!Array.isArray(playersList)) return true;
+      return playersList.some(p => {
+        const role = (p.role || p.role_description || '').toLowerCase();
+        if (role.includes('piece control') || role.includes('spacing') || role.includes('edgeguarding') || role.includes('jockeying')) return true;
+        if (Array.isArray(p.tasks)) {
+          return p.tasks.some(t => {
+            const desc = (t.desc || t.description || '').toLowerCase();
+            return desc.includes('aim trainer') || desc.includes('bindings') || desc.includes('kovaaks') || desc.includes('scrim') || desc.includes('deadzone');
+          });
+        }
+        return false;
+      });
+    }
+
+    function getCleanInitialState() {
+      // Limpiar claves antiguas en desuso para no dejar rastros en el navegador
+      const oldKeys = ['interhalcones_roster_data', 'interhalcones_version_key', 'interhalcones_roster_data_v2', 'interhalcones_roster_data_v3', 'interhalcones_roster_data_v4', 'ih_roster'];
+      oldKeys.forEach(k => localStorage.removeItem(k));
+
+      const saved = localStorage.getItem(CURRENT_STORAGE_KEY);
+      if (saved) {
+        try {
+          const parsed = JSON.parse(saved);
+          if (Array.isArray(parsed) && parsed.length === 6 && !isOldJargonPresent(parsed)) {
+            return parsed;
+          }
+        } catch (e) {
+          console.warn('Error leyendo almacenamiento, restableciendo...');
+        }
+      }
+
+      // Guardar e inicializar desde cero
+      localStorage.setItem(CURRENT_STORAGE_KEY, JSON.stringify(initialPlayersData));
+      return JSON.parse(JSON.stringify(initialPlayersData));
+    }
+
     let state = {
       viewMode: 'coach',
       selectedPlayerId: 'andres',
       activePlayerTab: 'tasks',
-      players: JSON.parse(localStorage.getItem('interhalcones_roster_data')) || initialPlayersData,
-      supabaseConfig: JSON.parse(localStorage.getItem('interhalcones_sb_config')) || DEFAULT_CONFIG,
+      players: getCleanInitialState(),
       supabaseClient: null,
       isSupabaseActive: false,
       breathingActive: false,
       breathingTimer: null
     };
 
-    // SUPABASE CLIENT INITIALIZATION
+    // Obtener credenciales de Supabase (Primero desde el código, luego de localStorage)
+    function getSupabaseCredentials() {
+      let url = SUPABASE_CONFIG.url ? SUPABASE_CONFIG.url.trim() : '';
+      let key = SUPABASE_CONFIG.anonKey ? SUPABASE_CONFIG.anonKey.trim() : '';
+
+      if (!url || !key) {
+        const saved = JSON.parse(localStorage.getItem('interhalcones_sb_config') || '{}');
+        url = url || saved.supabaseUrl || localStorage.getItem('ih_supabase_url') || '';
+        key = key || saved.supabaseAnonKey || localStorage.getItem('ih_supabase_key') || '';
+      }
+      return { url, key };
+    }
+
+    // Inicialización del cliente Supabase
     function initSupabase() {
-      const url = state.supabaseConfig.supabaseUrl;
-      const key = state.supabaseConfig.supabaseAnonKey;
+      const { url, key } = getSupabaseCredentials();
       const badge = document.getElementById('supabase-status-badge');
       const label = document.getElementById('supabase-status-label');
 
@@ -895,7 +973,7 @@
           label.innerText = 'Supabase Conectado';
           return true;
         } catch (err) {
-          console.warn('Error inicializando cliente de Supabase:', err);
+          console.warn('Error inicializando Supabase:', err);
         }
       }
 
@@ -905,12 +983,35 @@
       return false;
     }
 
-    // PERSISTENCE HELPER
+    // Persistencia en LocalStorage
     function persistLocalState() {
-      localStorage.setItem('interhalcones_roster_data', JSON.stringify(state.players));
+      localStorage.setItem(CURRENT_STORAGE_KEY, JSON.stringify(state.players));
     }
 
-    // ASYNC FETCH FROM SUPABASE OR LOCALSTORAGE
+    // Forzar limpieza total y reinicio al 0%
+    async function forceCleanReset() {
+      if (confirm('¿Deseas restablecer todo el sistema al 0% (sin tareas hechas, sin datos viejos y con el lenguaje 100% sencillo)?')) {
+        // Limpiar todas las claves de localStorage
+        localStorage.removeItem(CURRENT_STORAGE_KEY);
+        const oldKeys = ['interhalcones_roster_data', 'interhalcones_version_key', 'interhalcones_roster_data_v2', 'interhalcones_roster_data_v3', 'interhalcones_roster_data_v4', 'ih_roster', 'interhalcones_sb_config'];
+        oldKeys.forEach(k => localStorage.removeItem(k));
+
+        state.players = JSON.parse(JSON.stringify(initialPlayersData));
+        state.selectedPlayerId = 'andres';
+        persistLocalState();
+
+        if (state.isSupabaseActive && state.supabaseClient) {
+          await seedInitialDataToSupabase(true);
+        }
+
+        populatePlayerSelector();
+        renderCoachView();
+        renderPlayerView();
+        showToast('¡Sistema restablecido limpiamente al 0%!');
+      }
+    }
+
+    // Cargar datos desde Supabase o Local
     async function loadAllDataFromSupabase(forceNotify = false) {
       const syncIcon = document.getElementById('sync-icon');
       if (syncIcon) syncIcon.classList.add('animate-spin');
@@ -926,7 +1027,19 @@
             const { data: vodsData } = await state.supabaseClient.from('vods').select('*');
             const { data: journalsData } = await state.supabaseClient.from('journals').select('*');
 
-            // Merge relational tables into app structure
+            // DETECCIÓN ANTICORRUPCIÓN: Si Supabase tiene datos viejos con tecnicismos, limpiamos y actualizamos la nube
+            const hasOldData = isOldJargonPresent(playersData) || (tasksData && tasksData.some(t => {
+              const d = (t.description || '').toLowerCase();
+              return d.includes('aim trainer') || d.includes('bindings') || d.includes('scrim') || d.includes('piece control');
+            }));
+
+            if (hasOldData) {
+              console.log('Detectados datos viejos con tecnicismos en Supabase. Actualizando nube automáticamente...');
+              await seedInitialDataToSupabase(true);
+              if (syncIcon) syncIcon.classList.remove('animate-spin');
+              return;
+            }
+
             state.players = playersData.map(p => ({
               id: p.id,
               name: p.full_name,
@@ -942,12 +1055,12 @@
                 desc: t.description,
                 priority: t.priority,
                 evidence: t.evidence_url || '',
-                done: t.is_done
+                done: Boolean(t.is_done)
               })),
               kpis: (kpisData || []).filter(k => k.player_id === p.id).map(k => ({
                 id: k.id,
                 title: k.title,
-                current: Number(k.current_value),
+                current: Number(k.current_value) || 0,
                 target: Number(k.target_value),
                 unit: k.unit
               })),
@@ -969,9 +1082,12 @@
             }));
             persistLocalState();
             if (forceNotify) showToast('Datos sincronizados desde Supabase');
+          } else {
+            // Si la base de datos de Supabase está vacía, sembramos los 6 atletas de inmediato
+            await seedInitialDataToSupabase(true);
           }
         } catch (err) {
-          console.warn('Fallo al sincronizar con Supabase, usando respaldo local:', err);
+          console.warn('Error sincronizando con Supabase, usando respaldo local:', err);
           if (forceNotify) showToast('Usando almacenamiento local de respaldo');
         }
       }
@@ -982,14 +1098,26 @@
       renderPlayerView();
     }
 
-    // SEED INITIAL DATA TO SUPABASE
-    async function seedInitialDataToSupabase() {
-      if (!state.isSupabaseActive) {
-        showToast('Configura y conecta Supabase primero');
+    // Sembrar datos oficiales en Supabase (Limpia antes para evitar duplicados o datos viejos)
+    async function seedInitialDataToSupabase(silent = false) {
+      if (!state.isSupabaseActive || !state.supabaseClient) {
+        if (!silent) showToast('Configura y conecta Supabase primero');
         return;
       }
       try {
-        showToast('Sembrando datos en Supabase...');
+        if (!silent) showToast('Sembrando datos limpios en Supabase...');
+
+        // 1. Limpieza preventiva en Supabase
+        try {
+          await state.supabaseClient.from('tasks').delete().neq('id', 'keep_none');
+          await state.supabaseClient.from('kpis').delete().neq('id', 'keep_none');
+          await state.supabaseClient.from('vods').delete().neq('id', 'keep_none');
+          await state.supabaseClient.from('journals').delete().neq('id', 'keep_none');
+        } catch(e) {
+          console.warn('Limpieza de tablas secundarias completada con notas:', e);
+        }
+
+        // 2. Insertar los 6 atletas oficiales con sus 48 tareas limpias
         for (const p of initialPlayersData) {
           await state.supabaseClient.from('players').upsert({
             id: p.id,
@@ -1005,12 +1133,12 @@
               id: t.id,
               player_id: p.id,
               week: t.week,
-              category: t.category || 'Mecánicas / Micro',
+              category: t.category || 'Puntería y Reflejos',
               description: t.desc,
               priority: t.priority,
-              modality: t.modality || 'Presencial (Taller)',
-              evidence_url: t.evidence,
-              is_done: t.done
+              modality: t.modality,
+              evidence_url: t.evidence || '',
+              is_done: false
             });
           }
 
@@ -1019,25 +1147,36 @@
               id: k.id,
               player_id: p.id,
               title: k.title,
-              current_value: k.current,
+              current_value: 0,
               target_value: k.target,
               unit: k.unit
             });
           }
         }
-        showToast('¡Datos iniciales sembrados con éxito!');
-        loadAllDataFromSupabase(true);
-        closeModal('modal-supabase-config');
+
+        state.players = JSON.parse(JSON.stringify(initialPlayersData));
+        persistLocalState();
+        populatePlayerSelector();
+        renderCoachView();
+        renderPlayerView();
+
+        if (!silent) {
+          showToast('¡Datos sembrados con éxito en la nube al 0%!');
+          closeModal('modal-supabase-config');
+        }
       } catch (err) {
         console.error(err);
-        showToast('Error al sembrar datos en Supabase');
+        if (!silent) showToast('Error al sembrar datos en Supabase');
       }
     }
 
-    // INITIALIZATION
+    // Inicializar al cargar la página
     window.addEventListener('DOMContentLoaded', () => {
       initCountdown();
       initSupabase();
+      populatePlayerSelector();
+      renderCoachView();
+      renderPlayerView();
       loadAllDataFromSupabase();
     });
 
@@ -1120,7 +1259,7 @@
       switchViewMode('player');
     }
 
-    // RENDER COACH VIEW
+    // Renderizar Vista del Profesor / Coach
     function renderCoachView() {
       const grid = document.getElementById('roster-grid');
       grid.innerHTML = '';
@@ -1135,30 +1274,30 @@
         const pct = pTasks > 0 ? Math.round((pDone / pTasks) * 100) : 0;
 
         const card = document.createElement('div');
-        card.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition duration-200 flex flex-col justify-between gap-4 cursor-pointer group';
+        card.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition duration-200 flex flex-col justify-between gap-4 cursor-pointer group shadow-sm hover:shadow-sky-950/30';
         card.onclick = () => selectPlayerFromCoach(player.id);
         card.innerHTML = `
           <div class="space-y-3">
             <div class="flex items-center justify-between">
               <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-white ${player.badgeColor}">${player.game}</span>
-              <span class="text-xs font-semibold text-slate-400"><i class="fa-solid fa-brain mr-1"></i> ${player.personality}</span>
+              <span class="text-xs font-semibold text-slate-400"><i class="fa-solid fa-user-check mr-1 text-sky-400"></i> ${player.personality}</span>
             </div>
             <div>
               <h3 class="font-display font-bold text-lg text-white group-hover:text-sky-400 transition">${player.name}</h3>
-              <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${player.role}</p>
+              <p class="text-xs text-slate-300 font-medium line-clamp-2 mt-1">${player.role}</p>
             </div>
           </div>
           <div class="space-y-2 pt-2 border-t border-slate-800">
             <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400">Cumplimiento Tareas</span>
+              <span class="text-slate-400">Avance de Actividades</span>
               <span class="font-bold text-emerald-400">${pDone}/${pTasks} (${pct}%)</span>
             </div>
             <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
-              <div class="bg-emerald-500 h-full rounded-full" style="width: ${pct}%"></div>
+              <div class="bg-emerald-500 h-full rounded-full transition-all duration-300" style="width: ${pct}%"></div>
             </div>
-            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
-              <span>VODs & Evidencias: <strong class="text-slate-300">${player.vods.length}</strong></span>
-              <span class="text-sky-400 font-semibold group-hover:underline">Ver Expediente <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+            <div class="flex justify-between items-center text-[11px] text-slate-400 pt-1">
+              <span>Fotos/Videos: <strong class="text-white">${player.vods.length}</strong></span>
+              <span class="text-sky-400 font-semibold group-hover:underline flex items-center gap-1">Ver Plan <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
             </div>
           </div>
         `;
@@ -1171,7 +1310,7 @@
       document.getElementById('coach-player-count').innerText = `${state.players.length} Jugadores`;
     }
 
-    // RENDER PLAYER VIEW
+    // Renderizar Vista del Atleta
     function renderPlayerView() {
       const player = getCurrentPlayer();
       document.getElementById('player-avatar').innerText = player.name.charAt(0);
@@ -1186,7 +1325,7 @@
       const done = player.tasks.filter(t => t.done).length;
       const pct = total > 0 ? Math.round((done / total) * 100) : 0;
       document.getElementById('player-progress-pct').innerText = `${pct}%`;
-      document.getElementById('player-tasks-completed-text').innerText = `${done}/${total} Tareas`;
+      document.getElementById('player-tasks-completed-text').innerText = `${done}/${total} Actividades`;
       document.getElementById('player-progress-bar').style.width = `${pct}%`;
 
       renderTasksTab(player);
@@ -1210,7 +1349,7 @@
       });
     }
 
-    // RENDER TASKS WITH MODALITY FILTER
+    // Renderizar Actividades (En Clase y En Casa)
     function renderTasksTab(player) {
       const container = document.getElementById('tasks-container');
       container.innerHTML = '';
@@ -1222,7 +1361,7 @@
       }
 
       if (filteredTasks.length === 0) {
-        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-500 text-xs">No hay actividades registradas en esta vista. Haz clic en "Nueva Actividad" para añadir una.</div>`;
+        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs">No hay actividades con este filtro. Haz clic en "Nueva Actividad" para añadir una.</div>`;
         return;
       }
 
@@ -1234,15 +1373,16 @@
         box.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3';
         box.innerHTML = `
           <div class="flex items-center justify-between border-b border-slate-800 pb-2">
-            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Semana 0${w}</span>
-            <span class="text-[11px] text-slate-500">${weekTasks.filter(t => t.done).length}/${weekTasks.length} Completadas</span>
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider"><i class="fa-solid fa-calendar-week mr-1"></i> Semana 0${w}</span>
+            <span class="text-[11px] text-slate-400 font-semibold">${weekTasks.filter(t => t.done).length}/${weekTasks.length} Completadas</span>
           </div>
-          <div class="space-y-2" id="week-${w}-list"></div>
+          <div class="space-y-2.5" id="week-${w}-list"></div>
         `;
         container.appendChild(box);
         const list = box.querySelector(`#week-${w}-list`);
 
         weekTasks.forEach(task => {
+          const isHomeTask = task.modality.includes('En Casa');
           const item = document.createElement('div');
           item.className = `p-3.5 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
             task.done ? 'bg-slate-950/40 border-slate-800/60 opacity-60' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
@@ -1252,23 +1392,25 @@
             <div class="flex items-start gap-3">
               <input type="checkbox" ${task.done ? 'checked' : ''} onchange="toggleTaskDone('${player.id}', '${task.id}')" class="mt-0.5 w-4 h-4 rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0 cursor-pointer">
               <div class="space-y-1">
-                <span class="text-xs text-slate-200 block ${task.done ? 'line-through text-slate-500' : ''}">${task.desc}</span>
+                <span class="text-xs text-slate-100 font-medium block ${task.done ? 'line-through text-slate-500' : ''}">${task.desc}</span>
                 <div class="flex items-center gap-2 flex-wrap">
-                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded ${
-                    task.modality === 'En Casa (Asíncrono)' ? 'bg-amber-950/60 text-amber-300 border border-amber-800/50' : 'bg-slate-800 text-sky-300 border border-slate-700'
-                  }">${task.modality}</span>
-                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-850 text-slate-400 border border-slate-800">${task.category || 'Mecánicas'}</span>
-                  ${task.priority === 'Alta' ? `<span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-red-950 text-red-400 border border-red-900/50">Alta Prioridad</span>` : ''}
+                  <span class="text-[10px] font-bold px-2 py-0.5 rounded ${
+                    isHomeTask ? 'bg-amber-950/70 text-amber-300 border border-amber-800/60' : 'bg-sky-950/80 text-sky-300 border border-sky-800/70'
+                  }">
+                    <i class="${isHomeTask ? 'fa-solid fa-house-laptop' : 'fa-solid fa-chalkboard-user'} mr-1"></i> ${task.modality}
+                  </span>
+                  <span class="text-[10px] font-semibold px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">${task.category || 'Práctica'}</span>
+                  ${task.priority === 'Alta' ? `<span class="text-[10px] font-bold px-2 py-0.5 rounded bg-red-950 text-red-300 border border-red-900/50">Prioridad Alta</span>` : ''}
                   ${task.evidence ? `
                     <a href="${task.evidence}" target="_blank" class="text-[10px] font-semibold text-purple-400 hover:text-purple-300 underline flex items-center gap-1">
-                      <i class="fa-solid fa-paperclip"></i> Evidencia adjunta
-                    </a>` : ''}
+                      <i class="fa-solid fa-paperclip"></i> Ver Foto / Video
+                    </a>` : (isHomeTask ? `<span class="text-[10px] text-amber-400/80 italic"><i class="fa-solid fa-circle-exclamation mr-1"></i>Falta pegar link</span>` : '')}
                 </div>
               </div>
             </div>
             <div class="flex items-center gap-2 self-end sm:self-center">
-              <button onclick="openTaskModal('${task.id}')" class="text-slate-400 hover:text-sky-400 text-xs px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg"><i class="fa-solid fa-pen"></i></button>
-              <button onclick="deleteTask('${player.id}', '${task.id}')" class="text-slate-400 hover:text-red-400 text-xs px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+              <button onclick="openTaskModal('${task.id}')" class="text-slate-400 hover:text-sky-400 text-xs px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg transition" title="Editar actividad"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteTask('${player.id}', '${task.id}')" class="text-slate-400 hover:text-red-400 text-xs px-2.5 py-1 bg-slate-900 border border-slate-800 rounded-lg transition" title="Eliminar actividad"><i class="fa-solid fa-trash"></i></button>
             </div>
           `;
           list.appendChild(item);
@@ -1276,7 +1418,7 @@
       }
     }
 
-    // TASK HANDLERS
+    // Manejadores de Actividades
     async function toggleTaskDone(playerId, taskId) {
       const p = state.players.find(x => x.id === playerId);
       if (!p) return;
@@ -1295,10 +1437,11 @@
           console.warn('Error al actualizar tarea en Supabase:', err);
         }
       }
-      showToast(t.done ? 'Actividad marcada como completada' : 'Actividad pendiente');
+      showToast(t.done ? '¡Actividad marcada como lista!' : 'Actividad marcada como pendiente');
     }
 
     async function deleteTask(playerId, taskId) {
+      if (!confirm('¿Seguro que deseas eliminar esta actividad?')) return;
       const p = state.players.find(x => x.id === playerId);
       if (!p) return;
       p.tasks = p.tasks.filter(x => x.id !== taskId);
@@ -1335,8 +1478,8 @@
         inputId.value = t.id;
         inputDesc.value = t.desc;
         selectWeek.value = t.week;
-        selectModality.value = t.modality || 'Presencial (Taller)';
-        selectCategory.value = t.category || 'Mecánicas / Micro';
+        selectModality.value = t.modality || 'En Clase (Martes y Jueves - 90 min)';
+        selectCategory.value = t.category || 'Puntería y Reflejos';
         selectPriority.value = t.priority || 'Media';
         inputEvidence.value = t.evidence || '';
       } else {
@@ -1344,8 +1487,8 @@
         inputId.value = '';
         inputDesc.value = '';
         selectWeek.value = '1';
-        selectModality.value = 'Presencial (Taller)';
-        selectCategory.value = 'Mecánicas / Micro';
+        selectModality.value = 'En Clase (Martes y Jueves - 90 min)';
+        selectCategory.value = 'Puntería y Reflejos';
         selectPriority.value = 'Media';
         inputEvidence.value = '';
       }
@@ -1411,7 +1554,7 @@
       }
     }
 
-    // PLAYER PROFILE MODAL HANDLERS
+    // Manejadores de Perfil de Atleta
     function openEditPlayerModal(isNew = false) {
       const modal = document.getElementById('modal-player');
       const title = document.getElementById('modal-player-title');
@@ -1426,11 +1569,11 @@
         inputId.value = '';
         inputName.value = '';
         selectGame.value = 'Fortnite';
-        selectPersonality.value = 'Dinámico / Extrovertido';
+        selectPersonality.value = 'Activo y Rápido';
         inputRole.value = '';
       } else {
         const p = getCurrentPlayer();
-        title.innerText = 'Editar Expediente de Atleta';
+        title.innerText = 'Editar Perfil del Atleta';
         inputId.value = p.id;
         inputName.value = p.name;
         selectGame.value = p.game;
@@ -1480,7 +1623,7 @@
       renderCoachView();
       renderPlayerView();
       closeModal('modal-player');
-      showToast('Atleta actualizado con éxito');
+      showToast('Perfil de atleta actualizado');
 
       if (state.isSupabaseActive && state.supabaseClient) {
         try {
@@ -1498,10 +1641,10 @@
       }
     }
 
-    // KPIS HANDLERS
+    // Manejadores de Metas Claras (KPIs)
     function openAddKpiModal() {
       document.getElementById('input-kpi-title').value = '';
-      document.getElementById('input-kpi-current').value = '';
+      document.getElementById('input-kpi-current').value = '0';
       document.getElementById('input-kpi-target').value = '';
       document.getElementById('input-kpi-unit').value = '%';
       document.getElementById('modal-kpi').classList.remove('hidden');
@@ -1511,7 +1654,7 @@
       e.preventDefault();
       const p = getCurrentPlayer();
       const title = document.getElementById('input-kpi-title').value;
-      const current = parseFloat(document.getElementById('input-kpi-current').value);
+      const current = parseFloat(document.getElementById('input-kpi-current').value) || 0;
       const target = parseFloat(document.getElementById('input-kpi-target').value);
       const unit = document.getElementById('input-kpi-unit').value;
       const kpiId = 'k_' + Date.now();
@@ -1520,7 +1663,7 @@
       persistLocalState();
       renderKpisTab(p);
       closeModal('modal-kpi');
-      showToast('KPI añadido');
+      showToast('Meta guardada con éxito');
 
       if (state.isSupabaseActive && state.supabaseClient) {
         try {
@@ -1533,7 +1676,7 @@
             unit
           });
         } catch (err) {
-          console.warn('Error al guardar KPI en Supabase:', err);
+          console.warn('Error al guardar meta en Supabase:', err);
         }
       }
     }
@@ -1542,11 +1685,11 @@
       const container = document.getElementById('kpis-container');
       container.innerHTML = '';
       if (player.kpis.length === 0) {
-        container.innerHTML = `<div class="col-span-2 text-center text-slate-500 text-xs py-8">No hay métricas asignadas aún.</div>`;
+        container.innerHTML = `<div class="col-span-2 text-center text-slate-400 text-xs py-8 bg-slate-900 border border-slate-800 rounded-2xl">No hay metas asignadas aún. Haz clic en "Nueva Meta" para fijar un objetivo claro.</div>`;
         return;
       }
       player.kpis.forEach(kpi => {
-        const pct = Math.min(100, Math.round((kpi.current / kpi.target) * 100));
+        const pct = kpi.target > 0 ? Math.min(100, Math.round((kpi.current / kpi.target) * 100)) : 0;
         const card = document.createElement('div');
         card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3';
         card.innerHTML = `
@@ -1555,18 +1698,18 @@
             <span class="text-xs font-extrabold text-sky-400 bg-sky-950 border border-sky-800 px-2 py-0.5 rounded-full">${pct}%</span>
           </div>
           <div class="flex items-baseline justify-between text-xs">
-            <span class="text-slate-400">Actual: <strong class="text-white">${kpi.current} ${kpi.unit}</strong></span>
+            <span class="text-slate-400">Hoy: <strong class="text-white">${kpi.current} ${kpi.unit}</strong></span>
             <span class="text-slate-400">Meta: <strong class="text-emerald-400">${kpi.target} ${kpi.unit}</strong></span>
           </div>
           <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
-            <div class="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full" style="width: ${pct}%"></div>
+            <div class="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
           </div>
         `;
         container.appendChild(card);
       });
     }
 
-    // VODS HANDLERS
+    // Manejadores de Fotos y Videos
     function openAddVodModal() {
       document.getElementById('input-vod-title').value = '';
       document.getElementById('input-vod-url').value = '';
@@ -1586,7 +1729,7 @@
       persistLocalState();
       renderVodsTab(p);
       closeModal('modal-vod');
-      showToast('VOD registrado');
+      showToast('Foto o video guardado con éxito');
 
       if (state.isSupabaseActive && state.supabaseClient) {
         try {
@@ -1599,7 +1742,7 @@
             coach_feedback: ''
           });
         } catch (err) {
-          console.warn('Error al guardar VOD en Supabase:', err);
+          console.warn('Error al guardar evidencia en Supabase:', err);
         }
       }
     }
@@ -1608,7 +1751,7 @@
       const container = document.getElementById('vods-container');
       container.innerHTML = '';
       if (player.vods.length === 0) {
-        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-500 text-xs">No hay VODs o evidencias registradas aún.</div>`;
+        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-400 text-xs">No hay fotos o videos de práctica aún. Pega el link de tus prácticas en casa para que el profesor te dé consejos.</div>`;
         return;
       }
       player.vods.forEach(vod => {
@@ -1620,22 +1763,22 @@
               <i class="fa-solid fa-circle-play text-purple-400"></i> ${vod.title}
             </h4>
             <a href="${vod.url}" target="_blank" class="text-xs text-purple-400 hover:underline flex items-center gap-1">
-              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Video / Evidencia
+              <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Foto / Video
             </a>
           </div>
           <p class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800">
-            <strong class="text-slate-400 block mb-0.5">Nota del Atleta:</strong> ${vod.notes || 'Sin anotaciones adicionales.'}
+            <strong class="text-slate-400 block mb-0.5"><i class="fa-solid fa-comment-dots mr-1"></i> Nota del Jugador:</strong> ${vod.notes || 'Práctica realizada en casa.'}
           </p>
           ${vod.coach_feedback ? `
             <div class="text-xs text-sky-200 bg-sky-950/40 p-3 rounded-xl border border-sky-800/50">
-              <strong class="text-sky-400 block mb-0.5"><i class="fa-solid fa-user-shield mr-1"></i> Feedback del Coach:</strong> ${vod.coach_feedback}
+              <strong class="text-sky-400 block mb-0.5"><i class="fa-solid fa-chalkboard-user mr-1"></i> Consejo del Profesor:</strong> ${vod.coach_feedback}
             </div>` : ''}
         `;
         container.appendChild(item);
       });
     }
 
-    // JOURNAL HANDLERS
+    // Manejadores del Cuaderno de Partidas
     function openAddJournalModal() {
       document.getElementById('input-journal-trigger').value = '';
       document.getElementById('input-journal-action').value = '';
@@ -1663,7 +1806,7 @@
       persistLocalState();
       renderJournalTab(p);
       closeModal('modal-journal');
-      showToast('Bitácora guardada');
+      showToast('Anotación guardada en tu cuaderno');
 
       if (state.isSupabaseActive && state.supabaseClient) {
         try {
@@ -1686,7 +1829,7 @@
       const container = document.getElementById('journal-container');
       container.innerHTML = '';
       if (player.journals.length === 0) {
-        container.innerHTML = `<div class="text-center text-slate-500 text-xs py-6">Bitácora vacía. Registra tu balance objetivo tras cada sesión.</div>`;
+        container.innerHTML = `<div class="text-center text-slate-400 text-xs py-6 bg-slate-950 rounded-xl border border-slate-800">Cuaderno sin registros aún. Tras cada partida difícil, anota qué error cometiste tú para aprender en vez de enojarte.</div>`;
         return;
       }
       player.journals.forEach(j => {
@@ -1695,38 +1838,38 @@
         card.innerHTML = `
           <div class="flex items-center justify-between text-xs">
             <span class="font-bold text-white">${j.session_outcome}</span>
-            <span class="text-slate-500">${j.session_date}</span>
+            <span class="text-slate-500 font-medium">${j.session_date}</span>
           </div>
-          <p class="text-xs text-slate-300"><strong>Hecho Objetivo:</strong> ${j.tilt_trigger}</p>
-          <p class="text-xs text-sky-300"><strong>Ajuste Práctico:</strong> ${j.objective_response}</p>
-          ${j.box_breathing_used ? `<span class="inline-block text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60"><i class="fa-solid fa-check mr-1"></i> Respiración 4-4-4-4 aplicada</span>` : ''}
+          <p class="text-xs text-slate-300"><strong>Error que cometí yo:</strong> ${j.tilt_trigger}</p>
+          <p class="text-xs text-sky-300"><strong>Cómo lo voy a corregir:</strong> ${j.objective_response}</p>
+          ${j.box_breathing_used ? `<span class="inline-block text-[10px] text-emerald-400 bg-emerald-950/60 px-2 py-0.5 rounded border border-emerald-800/60"><i class="fa-solid fa-heart mr-1"></i> Usé el Botón de Calma (respiración de 4 seg)</span>` : ''}
         `;
         container.appendChild(card);
       });
     }
 
-    // BREATHING PROTOCOL TOOL
+    // Botón de Calma (Respiración de 4 Segundos)
     function toggleBreathingTool() {
       const btn = document.getElementById('btn-breathing-toggle');
       if (state.breathingActive) {
         clearInterval(state.breathingTimer);
         state.breathingActive = false;
-        btn.innerHTML = `<i class="fa-solid fa-play"></i> Iniciar Guía`;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> Iniciar Botón de Calma`;
         btn.className = 'px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
         document.getElementById('breathing-phase-text').innerText = 'En pausa';
         document.getElementById('breathing-seconds').innerText = '4';
         document.getElementById('breathing-instruction').innerText = 'Inhala profundamente';
       } else {
         state.breathingActive = true;
-        btn.innerHTML = `<i class="fa-solid fa-pause"></i> Detener`;
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> Detener Calma`;
         btn.className = 'px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700';
 
         let sec = 4, phaseIndex = 0;
         const phases = [
-          { name: 'Inhala', action: 'Inhala profundamente por la nariz', size: 'w-36 h-36 bg-sky-500/40 border-sky-400' },
-          { name: 'Sostén', action: 'Mantén el aire en los pulmones', size: 'w-36 h-36 bg-emerald-500/40 border-emerald-400' },
-          { name: 'Exhala', action: 'Exhala lentamente por la boca', size: 'w-24 h-24 bg-purple-500/40 border-purple-400' },
-          { name: 'Sostén', action: 'Mantén los pulmones vacíos', size: 'w-24 h-24 bg-amber-500/40 border-amber-400' }
+          { name: 'Inhala', action: 'Inhala suavemente por la nariz (cuenta 4 seg)', size: 'w-36 h-36 bg-sky-500/40 border-sky-400' },
+          { name: 'Sostén', action: 'Mantén el aire con calma (4 seg)', size: 'w-36 h-36 bg-emerald-500/40 border-emerald-400' },
+          { name: 'Exhala', action: 'Suelta el aire despacio por la boca (4 seg)', size: 'w-24 h-24 bg-purple-500/40 border-purple-400' },
+          { name: 'Descansa', action: 'Descansa con los pulmones vacíos (4 seg)', size: 'w-24 h-24 bg-amber-500/40 border-amber-400' }
         ];
 
         state.breathingTimer = setInterval(() => {
@@ -1744,26 +1887,27 @@
       }
     }
 
-    // MODAL UTILITIES
+    // Utilidades de Modales
     function closeModal(id) {
       document.getElementById(id).classList.add('hidden');
     }
 
     function openSupabaseConfigModal() {
-      document.getElementById('input-sb-url').value = state.supabaseConfig.supabaseUrl || '';
-      document.getElementById('input-sb-key').value = state.supabaseConfig.supabaseAnonKey || '';
+      const { url, key } = getSupabaseCredentials();
+      document.getElementById('input-sb-url').value = url;
+      document.getElementById('input-sb-key').value = key;
       document.getElementById('modal-supabase-config').classList.remove('hidden');
     }
 
     function handleSaveSupabaseConfig(e) {
       e.preventDefault();
-      state.supabaseConfig.supabaseUrl = document.getElementById('input-sb-url').value.trim();
-      state.supabaseConfig.supabaseAnonKey = document.getElementById('input-sb-key').value.trim();
-      localStorage.setItem('interhalcones_sb_config', JSON.stringify(state.supabaseConfig));
+      const url = document.getElementById('input-sb-url').value.trim();
+      const key = document.getElementById('input-sb-key').value.trim();
+      localStorage.setItem('interhalcones_sb_config', JSON.stringify({ supabaseUrl: url, supabaseAnonKey: key }));
       initSupabase();
       loadAllDataFromSupabase(true);
       closeModal('modal-supabase-config');
-      showToast('Credenciales guardadas');
+      showToast('Credenciales de Supabase guardadas');
     }
 
     function showToast(msg) {
