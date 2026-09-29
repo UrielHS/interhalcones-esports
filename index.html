@@ -1,0 +1,1628 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>InterHalcones Esports - Sistema Cloud con Supabase</title>
+  
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            }
+          },
+          fontFamily: {
+            sans: ['Plus Jakarta Sans', 'sans-serif'],
+            display: ['Outfit', 'sans-serif']
+          }
+        }
+      }
+    }
+  </script>
+
+  <!-- Google Fonts & Font Awesome Icons -->
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+  <!-- Supabase JS Client v2 CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .font-display {
+      font-family: 'Outfit', sans-serif;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #0f172a;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #334155;
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #475569;
+    }
+    .pulse-sync {
+      animation: syncPulse 2s infinite ease-in-out;
+    }
+    @keyframes syncPulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.5; transform: scale(0.95); }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between selection:bg-sky-500 selection:text-white">
+
+  <!-- HEADER & APP CONTROLS -->
+  <header class="bg-slate-900/90 backdrop-blur border-b border-slate-800 sticky top-0 z-40 px-4 lg:px-8 py-3">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      <!-- Logo & Meta -->
+      <div class="flex items-center gap-3 w-full md:w-auto justify-between">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-blue-500 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-sky-500/20">
+            H
+          </div>
+          <div>
+            <h1 class="font-display font-bold text-lg text-white leading-tight flex items-center gap-2">
+              InterHalcones <span class="text-sky-400 text-xs px-2 py-0.5 rounded-full bg-sky-950/80 border border-sky-800">Esports Cloud</span>
+            </h1>
+            <p class="text-xs text-slate-400">Meta: Torneo 24 de Octubre</p>
+          </div>
+        </div>
+
+        <!-- Supabase Cloud Connection Status Badge -->
+        <div class="flex items-center gap-2">
+          <button onclick="openSupabaseConfigModal()" id="supabase-status-badge" class="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/70 border border-emerald-700/60 text-emerald-400 hover:bg-emerald-900/50 transition">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+            <i class="fa-solid fa-cloud"></i>
+            <span id="supabase-status-label">Supabase Conectado</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 w-full md:w-auto overflow-x-auto pb-1 md:pb-0">
+        <!-- View Toggle (Coach vs Player) -->
+        <div class="bg-slate-950 p-1 rounded-xl border border-slate-800 flex items-center text-xs">
+          <button id="btn-mode-coach" onclick="switchViewMode('coach')" class="px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-white bg-sky-600">
+            <i class="fa-solid fa-user-shield mr-1.5"></i> Coach
+          </button>
+          <button id="btn-mode-player" onclick="switchViewMode('player')" class="px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-slate-400 hover:text-white">
+            <i class="fa-solid fa-gamepad mr-1.5"></i> Atleta
+          </button>
+        </div>
+
+        <!-- Player Selector -->
+        <div id="player-selector-container" class="hidden flex items-center gap-2 bg-slate-950 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+          <label class="text-slate-400 font-medium whitespace-nowrap">Atleta:</label>
+          <select id="player-select" onchange="onPlayerSelectChange(this.value)" class="bg-transparent text-white font-semibold focus:outline-none cursor-pointer">
+            <!-- Populated via JS -->
+          </select>
+        </div>
+
+        <!-- Reload Data Button -->
+        <button onclick="loadAllDataFromSupabase(true)" title="Sincronizar datos con Supabase" class="px-3 py-1.5 bg-slate-950 border border-slate-800 hover:border-slate-700 text-slate-300 hover:text-sky-400 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition">
+          <i id="sync-icon" class="fa-solid fa-arrows-rotate"></i>
+          <span class="hidden sm:inline">Sync</span>
+        </button>
+
+        <!-- Countdown Pill -->
+        <div class="hidden lg:flex items-center gap-2 bg-amber-950/40 border border-amber-800/50 text-amber-300 text-xs font-semibold px-3 py-1.5 rounded-xl">
+          <i class="fa-solid fa-stopwatch text-amber-400"></i>
+          <span id="countdown-badge">Cargando...</span>
+        </div>
+      </div>
+
+    </div>
+  </header>
+
+  <!-- MAIN CONTAINER -->
+  <main class="flex-grow max-w-7xl w-full mx-auto px-4 lg:px-8 py-6 space-y-6">
+
+    <!-- COACH VIEW -->
+    <div id="view-coach" class="space-y-6">
+      
+      <!-- Top Metrics Dashboard -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Atletas en Supabase</p>
+            <h3 id="coach-player-count" class="font-display font-bold text-2xl text-white mt-1">-- Jugadores</h3>
+            <p class="text-xs text-sky-400 mt-1"><i class="fa-solid fa-cloud-arrow-down mr-1"></i> Sincronizados</p>
+          </div>
+          <div class="w-12 h-12 bg-sky-500/10 rounded-xl flex items-center justify-center text-sky-400 text-xl border border-sky-500/20">
+            <i class="fa-solid fa-users"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Cumplimiento Global</p>
+            <h3 id="coach-task-completion-rate" class="font-display font-bold text-2xl text-emerald-400 mt-1">0%</h3>
+            <p class="text-xs text-slate-400 mt-1">Tareas en aula y casa</p>
+          </div>
+          <div class="w-12 h-12 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-400 text-xl border border-emerald-500/20">
+            <i class="fa-solid fa-list-check"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">VODs y Evidencias</p>
+            <h3 id="coach-vod-count" class="font-display font-bold text-2xl text-purple-400 mt-1">0</h3>
+            <p class="text-xs text-slate-400 mt-1">Subidas a revisión</p>
+          </div>
+          <div class="w-12 h-12 bg-purple-500/10 rounded-xl flex items-center justify-center text-purple-400 text-xl border border-purple-500/20">
+            <i class="fa-solid fa-video"></i>
+          </div>
+        </div>
+
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-5 flex items-center justify-between">
+          <div>
+            <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Próximo Taller</p>
+            <h3 class="font-display font-bold text-xl text-amber-400 mt-1">Martes / Jueves</h3>
+            <p class="text-xs text-slate-400 mt-1">90 min de práctica guiada</p>
+          </div>
+          <div class="w-12 h-12 bg-amber-500/10 rounded-xl flex items-center justify-center text-amber-400 text-xl border border-amber-500/20">
+            <i class="fa-solid fa-chalkboard-user"></i>
+          </div>
+        </div>
+      </div>
+
+      <!-- Roster Grid Header -->
+      <div class="space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h2 class="font-display font-bold text-2xl text-white">Roster Oficial de Atletas</h2>
+            <p class="text-sm text-slate-400">Selecciona un atleta para ver sus metas, editar tareas o añadir retroalimentación.</p>
+          </div>
+          <button onclick="openAddPlayerModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-user-plus"></i> Registrar Atleta
+          </button>
+        </div>
+
+        <!-- Roster Cards Container -->
+        <div id="roster-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <!-- Populated dynamically via JS -->
+        </div>
+      </div>
+
+      <!-- 5-Week Master Roadmap -->
+      <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-2 border-b border-slate-800 pb-4">
+          <div>
+            <h3 class="font-display font-bold text-xl text-white">Cronograma Oficial de 5 Semanas</h3>
+            <p class="text-xs text-slate-400">Presencial (Martes y Jueves · 90m) + Práctica Asíncrona (Casa con Evidencia)</p>
+          </div>
+          <span class="text-xs font-semibold px-3 py-1 rounded-full bg-sky-950 text-sky-400 border border-sky-800/60 self-start md:self-auto">
+            10 Sesiones Presenciales
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-5 gap-4 pt-2">
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-sky-400">SEM 01</span>
+                <span class="text-[10px] text-slate-500">22-24 Sep</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mb-1">Diagnóstico & Setup</h4>
+              <p class="text-xs text-slate-400">Calibración de deadzones, benchmarks mecánicos y test de arquetipos.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
+              <i class="fa-solid fa-sliders mr-1"></i> Sesión 1 y 2
+            </div>
+          </div>
+
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-sky-400">SEM 02</span>
+                <span class="text-[10px] text-slate-500">29 Sep-1 Oct</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mb-1">Mecánica Pura & Micro</h4>
+              <p class="text-xs text-slate-400">Ejecución aislada: entradas manuales, timed green, piece control y fast falls.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
+              <i class="fa-solid fa-gamepad mr-1"></i> Sesión 3 y 4
+            </div>
+          </div>
+
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-sky-400">SEM 03</span>
+                <span class="text-[10px] text-slate-500">6-8 Oct</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mb-1">Estrategia & Macro</h4>
+              <p class="text-xs text-slate-400">Toma de decisiones con ventaja de recursos, lectura de rivales y VOD reviews.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
+              <i class="fa-solid fa-chart-line mr-1"></i> Sesión 5 y 6
+            </div>
+          </div>
+
+          <div class="bg-slate-950/60 border border-slate-800 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-sky-400">SEM 04</span>
+                <span class="text-[10px] text-slate-500">13-15 Oct</span>
+              </div>
+              <h4 class="font-bold text-sm text-white mb-1">Resiliencia & Anti-Tilt</h4>
+              <p class="text-xs text-slate-400">Simulación con desventaja inducida, respiración 4-4-4-4 y bitácora objetiva.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-slate-800 text-[11px] text-slate-500">
+              <i class="fa-solid fa-brain mr-1"></i> Sesión 7 y 8
+            </div>
+          </div>
+
+          <div class="bg-amber-950/30 border border-amber-800/50 rounded-xl p-4 flex flex-col justify-between">
+            <div>
+              <div class="flex items-center justify-between mb-2">
+                <span class="text-xs font-bold text-amber-400">SEM 05</span>
+                <span class="text-[10px] text-amber-300">20-22 Oct</span>
+              </div>
+              <h4 class="font-bold text-sm text-amber-200 mb-1">Simulacro Competitivo</h4>
+              <p class="text-xs text-amber-100/70">Torneo interno en vivo con cast, presión de público y puesta a punto mental.</p>
+            </div>
+            <div class="mt-4 pt-2 border-t border-amber-800/50 text-[11px] text-amber-400 font-semibold">
+              <i class="fa-solid fa-flag-checkered mr-1"></i> Sesión 9 y 10
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PLAYER VIEW -->
+    <div id="view-player" class="hidden space-y-6">
+      
+      <!-- Athlete Profile Header -->
+      <div id="player-banner" class="bg-slate-900 border border-slate-800 rounded-3xl p-6 lg:p-8 relative overflow-hidden">
+        <div class="relative z-10 flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5">
+            <div id="player-avatar" class="w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-xl border-2 border-slate-700/50"></div>
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 flex-wrap">
+                <span id="player-game-badge" class="px-3 py-0.5 rounded-full text-xs font-bold text-white"></span>
+                <span id="player-personality-badge" class="px-3 py-0.5 rounded-full text-xs font-medium bg-slate-800 text-slate-300 border border-slate-700"></span>
+                <button onclick="openEditPlayerModal()" class="text-xs text-sky-400 hover:text-sky-300 ml-2 underline"><i class="fa-solid fa-pen"></i> Editar Perfil</button>
+              </div>
+              <h2 id="player-fullname" class="font-display font-extrabold text-2xl lg:text-3xl text-white"></h2>
+              <p id="player-role-desc" class="text-xs lg:text-sm text-slate-400"></p>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-auto bg-slate-950/80 border border-slate-800/80 p-4 rounded-2xl flex items-center gap-6 justify-between lg:justify-start">
+            <div>
+              <p class="text-xs text-slate-400 font-semibold uppercase">Cumplimiento de Tareas</p>
+              <div class="flex items-baseline gap-2 mt-1">
+                <span id="player-progress-pct" class="font-display font-bold text-2xl text-emerald-400">0%</span>
+                <span id="player-tasks-completed-text" class="text-xs text-slate-400">0/0 Tareas</span>
+              </div>
+            </div>
+            <div class="w-28">
+              <div class="w-full bg-slate-800 h-2.5 rounded-full overflow-hidden">
+                <div id="player-progress-bar" class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: 0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <div class="flex items-center border-b border-slate-800 overflow-x-auto gap-2 text-sm font-semibold">
+        <button onclick="switchPlayerTab('tasks')" id="tab-btn-tasks" class="px-4 py-3 border-b-2 border-sky-500 text-sky-400 flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-list-check"></i> Plan de Entrenamiento & Actividades
+        </button>
+        <button onclick="switchPlayerTab('kpis')" id="tab-btn-kpis" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-bullseye"></i> KPIs Técnicos
+        </button>
+        <button onclick="switchPlayerTab('vods')" id="tab-btn-vods" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-video"></i> VODs y Evidencias
+        </button>
+        <button onclick="switchPlayerTab('mindset')" id="tab-btn-mindset" class="px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap">
+          <i class="fa-solid fa-brain"></i> Psicología y Control de Tilt
+        </button>
+      </div>
+
+      <!-- TAB 1: TAREAS -->
+      <div id="player-tab-tasks" class="space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h3 class="font-display font-bold text-lg text-white">Misiones Semanales (Clase y Casa)</h3>
+            <p class="text-xs text-slate-400">Marca las actividades realizadas y adjunta el enlace de captura o clip cuando aplique.</p>
+          </div>
+          <button onclick="openAddTaskModal()" class="px-3.5 py-2 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Nueva Actividad
+          </button>
+        </div>
+
+        <div id="tasks-container" class="space-y-4">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 2: KPIS -->
+      <div id="player-tab-kpis" class="hidden space-y-4">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-900 p-4 rounded-2xl border border-slate-800">
+          <div>
+            <h3 class="font-display font-bold text-lg text-white">Métricas de Desempeño Cuantitativo (KPIs)</h3>
+            <p class="text-xs text-slate-400">Indicadores medibles para evaluar consistencia y efectividad en partida.</p>
+          </div>
+          <button onclick="openAddKpiModal()" class="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-plus"></i> Añadir KPI
+          </button>
+        </div>
+
+        <div id="kpis-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 3: VODS Y EVIDENCIAS -->
+      <div id="player-tab-vods" class="hidden space-y-4">
+        <div class="bg-slate-900 p-5 rounded-2xl border border-slate-800 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+          <div>
+            <h3 class="font-display font-bold text-lg text-white">Revisión de VODs y Evidencias de Práctica</h3>
+            <p class="text-xs text-slate-400">Sube grabaciones de partidas ajustadas o derrotas para análisis causal en el taller.</p>
+          </div>
+          <button onclick="openAddVodModal()" class="px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+            <i class="fa-solid fa-upload"></i> Subir Grabación / VOD
+          </button>
+        </div>
+
+        <div id="vods-container" class="space-y-3">
+          <!-- Populated via JS -->
+        </div>
+      </div>
+
+      <!-- TAB 4: PSICOLOGÍA Y BITÁCORA OBJETIVA -->
+      <div id="player-tab-mindset" class="hidden space-y-6">
+        
+        <!-- Breathing Exercise Tool -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 grid grid-cols-1 md:grid-cols-2 gap-6 items-center">
+          <div class="space-y-3">
+            <span class="px-3 py-1 rounded-full text-[11px] font-bold bg-sky-950 text-sky-400 border border-sky-800">
+              <i class="fa-solid fa-lungs mr-1"></i> Protocolo Fisiológico
+            </span>
+            <h3 class="font-display font-bold text-2xl text-white">Respiración Cuadrada (4-4-4-4)</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">
+              Actívala inmediatamente tras cometer un error o perder un set. Reduce el ritmo cardíaco, estabiliza el cortisol y devuelve la corteza prefrontal al modo analítico.
+            </p>
+            <div class="pt-2 flex items-center gap-3">
+              <button id="btn-breathing-toggle" onclick="toggleBreathingTool()" class="px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2">
+                <i class="fa-solid fa-play"></i> Iniciar Guía
+              </button>
+              <span id="breathing-phase-text" class="text-xs font-semibold text-slate-400">En pausa</span>
+            </div>
+          </div>
+
+          <div class="flex flex-col items-center justify-center p-6 bg-slate-950 rounded-2xl border border-slate-800">
+            <div class="relative w-40 h-40 flex items-center justify-center">
+              <div id="breathing-circle" class="w-28 h-28 rounded-full bg-sky-500/20 border-2 border-sky-500 flex items-center justify-center transition-all duration-1000">
+                <span id="breathing-seconds" class="font-display font-bold text-3xl text-sky-400">4</span>
+              </div>
+            </div>
+            <p id="breathing-instruction" class="text-xs font-semibold text-slate-300 mt-3 uppercase tracking-wider">Inhala profundamente</p>
+          </div>
+        </div>
+
+        <!-- Objective Cognitive Journal -->
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-display font-bold text-lg text-white">Bitácora Cognitiva (Desensibilización de Frustración)</h3>
+              <p class="text-xs text-slate-400">Registra el estímulo desencadenante de forma neutral y establece el ajuste mecánico inmediato.</p>
+            </div>
+            <button onclick="openAddJournalModal()" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700">
+              <i class="fa-solid fa-pen-to-square"></i> Registrar Entrada
+            </button>
+          </div>
+
+          <div id="journal-container" class="space-y-3">
+            <!-- Populated via JS -->
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- MODAL 1: SUPABASE CONFIGURATION -->
+  <div id="modal-supabase-config" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-database text-emerald-400"></i>
+          <h3 class="font-display font-bold text-lg text-white">Configuración de Supabase Cloud</h3>
+        </div>
+        <button onclick="closeModal('modal-supabase-config')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <p class="text-xs text-slate-300">
+        Ingresa las credenciales de tu proyecto de Supabase (Project Settings &rarr; API). Los datos se guardarán de forma local en tu navegador para sincronizar en tiempo real.
+      </p>
+
+      <form onsubmit="handleSaveSupabaseConfig(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Project URL (Supabase URL)</label>
+          <input id="input-supabase-url" type="url" required placeholder="https://xyzcompany.supabase.co" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Anon Public Key</label>
+          <input id="input-supabase-key" type="password" required placeholder="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 font-mono">
+        </div>
+
+        <div class="flex items-center justify-between pt-2">
+          <button type="button" onclick="loadDefaultMockData()" class="text-xs text-slate-400 hover:text-sky-400 underline">
+            Cargar Datos Iniciales en Supabase
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeModal('modal-supabase-config')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cerrar</button>
+            <button type="submit" class="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-semibold transition">Guardar y Probar</button>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 2: TAREA (CREAR / EDITAR) -->
+  <div id="modal-task" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-lg p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-task-title" class="font-display font-bold text-lg text-white">Actividad de Entrenamiento</h3>
+        <button onclick="closeModal('modal-task')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveTaskSubmit(event)" class="space-y-4">
+        <input type="hidden" id="input-task-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Descripción de la Actividad</label>
+          <input id="input-task-desc" type="text" required placeholder="Ej. 15 min de Timed Finishing o práctica de Wall Tech" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Semana</label>
+            <select id="select-task-week" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="1">Semana 1 (Diagnóstico)</option>
+              <option value="2">Semana 2 (Mecánicas)</option>
+              <option value="3">Semana 3 (Estrategia)</option>
+              <option value="4">Semana 4 (Resiliencia)</option>
+              <option value="5">Semana 5 (Simulacro)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Modalidad</label>
+            <select id="select-task-modality" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="Presencial (Taller)">Presencial (Taller)</option>
+              <option value="En Casa (Asíncrono)">En Casa (Asíncrono)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Prioridad</label>
+            <select id="select-task-priority" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="Alta">Alta</option>
+              <option value="Media" selected>Media</option>
+              <option value="Baja">Baja</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Categoría Técnica</label>
+            <select id="select-task-category" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="Mecánicas / Micro">Mecánicas / Micro</option>
+              <option value="Táctica / Macro">Táctica / Macro</option>
+              <option value="Mindset / Resiliencia">Mindset / Resiliencia</option>
+              <option value="VOD Review / Análisis">VOD Review / Análisis</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Enlace de Evidencia (Captura / Clip URL)</label>
+          <input id="input-task-evidence" type="url" placeholder="https://drive.google.com/..., https://youtu.be/... o captura" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-sky-500">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-task')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar en Supabase</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: ATLETA (CREAR O EDITAR) -->
+  <div id="modal-player" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 id="modal-player-title" class="font-display font-bold text-lg text-white">Expediente del Atleta</h3>
+        <button onclick="closeModal('modal-player')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSavePlayerSubmit(event)" class="space-y-4">
+        <input type="hidden" id="input-player-id">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre Completo</label>
+          <input id="input-player-fullname" type="text" required placeholder="Ej. NOMBRE APELLIDO" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500 uppercase">
+        </div>
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Juego Oficial</label>
+            <select id="select-player-game" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="EAFC">EAFC</option>
+              <option value="Fortnite">Fortnite</option>
+              <option value="Mario Kart">Mario Kart</option>
+              <option value="Super Smash Bros">Super Smash Bros</option>
+              <option value="Valorant">Valorant</option>
+              <option value="Rocket League">Rocket League</option>
+              <option value="Otro">Otro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Arquetipo Psicológico</label>
+            <select id="select-player-personality" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+              <option value="Analítico / Introvertido">Analítico / Introvertido</option>
+              <option value="Dinámico / Extrovertido">Dinámico / Extrovertido</option>
+              <option value="Estratégico / Observador">Estratégico / Observador</option>
+              <option value="Agresivo / Impulsivo">Agresivo / Impulsivo</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Rol / Especialidad Táctica</label>
+          <input id="input-player-role" type="text" required placeholder="Ej. Mediocampo y Ataque / Piece Control" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-player')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Guardar Atleta</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 4: CREAR KPI -->
+  <div id="modal-kpi" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-display font-bold text-lg text-white">Nuevo KPI Técnico</h3>
+        <button onclick="closeModal('modal-kpi')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveKpiSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Nombre del Indicador</label>
+          <input id="input-kpi-title" type="text" required placeholder="Ej. Precisión de Escopetazos a la Cabeza" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+        </div>
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Valor Actual</label>
+            <input id="input-kpi-current" type="number" step="any" required placeholder="50" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Objetivo</label>
+            <input id="input-kpi-target" type="number" step="any" required placeholder="80" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-300 mb-1">Unidad</label>
+            <input id="input-kpi-unit" type="text" required placeholder="%" value="%" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-emerald-500">
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-kpi')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-emerald-600 text-white rounded-xl text-xs font-semibold hover:bg-emerald-500">Guardar KPI</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 5: SUBIR VOD -->
+  <div id="modal-vod" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-display font-bold text-lg text-white">Subir Enlace de VOD / Clip</h3>
+        <button onclick="closeModal('modal-vod')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveVodSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Título de la Partida</label>
+          <input id="input-vod-title" type="text" required placeholder="Ej. Rivals Div 2 - Derrota 2-3 en min 89" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">URL (YouTube / Twitch / Drive / Clip)</label>
+          <input id="input-vod-url" type="url" required placeholder="https://..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Notas del Atleta (¿Qué jugada deseas revisar?)</label>
+          <textarea id="input-vod-notes" rows="3" placeholder="Ej. Dificultad para salir de la presión en últimos 15 min..." class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500"></textarea>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-vod')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-purple-600 text-white rounded-xl text-xs font-semibold hover:bg-purple-500">Guardar VOD</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 6: BITÁCORA OBJETIVA -->
+  <div id="modal-journal" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-md p-6 space-y-4">
+      <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+        <h3 class="font-display font-bold text-lg text-white">Bitácora Mental Post-Sesión</h3>
+        <button onclick="closeModal('modal-journal')" class="text-slate-400 hover:text-white"><i class="fa-solid fa-xmark text-lg"></i></button>
+      </div>
+
+      <form onsubmit="handleSaveJournalSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Estado Emocional / Mental</label>
+          <select id="select-journal-mood" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+            <option value="Enfocado y Satisfecho">🟢 Enfocado y Satisfecho</option>
+            <option value="Frustrado por Errores">🔴 Frustrado por Errores</option>
+            <option value="Neutro / Trabajo Cumplido">🟡 Neutro / Trabajo Cumplido</option>
+            <option value="Fatiga Cognitiva">🟣 Fatiga Cognitiva</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Hecho Causal Objetivo (Sin culpar a la suerte)</label>
+          <input id="input-journal-trigger" type="text" required placeholder="Ej. Perdí 2 rounds por apresurar el push sin cobertura" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-300 mb-1">Respuesta y Ajuste para la Siguiente Ronda</label>
+          <textarea id="input-journal-action" rows="2" required placeholder="Ej. Realizar pausa de respiración 4-4-4-4 y mantener spacing defensivo" class="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-xs text-white focus:outline-none focus:border-sky-500"></textarea>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="checkbox" id="input-journal-breathing" class="w-4 h-4 rounded bg-slate-950 border-slate-800 text-sky-600 focus:ring-0">
+          <label for="input-journal-breathing" class="text-xs text-slate-300 cursor-pointer">Apliqué respiración cuadrada en la pausa</label>
+        </div>
+        <div class="flex justify-end gap-2 pt-2">
+          <button type="button" onclick="closeModal('modal-journal')" class="px-4 py-2 bg-slate-800 text-slate-300 rounded-xl text-xs font-semibold hover:bg-slate-700">Cancelar</button>
+          <button type="submit" class="px-4 py-2 bg-sky-600 text-white rounded-xl text-xs font-semibold hover:bg-sky-500">Registrar Bitácora</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast Notification Box -->
+  <div id="toast-container" class="fixed bottom-5 right-5 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800 bg-slate-950 py-4 px-6 text-center text-xs text-slate-500">
+    InterHalcones Esports · Conexión Directa con Supabase PostgreSQL · Rumbo al 24 de Octubre
+  </footer>
+
+  <script>
+    /*
+     * SUPABASE CONFIGURATION & CLIENT INITIALIZATION
+     */
+    const DEFAULT_CONFIG = {
+      url: localStorage.getItem('ih_supabase_url') || '',
+      key: localStorage.getItem('ih_supabase_key') || ''
+    };
+
+    let supabaseClient = null;
+
+    // In-memory unified application state
+    let state = {
+      viewMode: 'coach',
+      selectedPlayerId: 'cesar',
+      activePlayerTab: 'tasks',
+      players: [],
+      tasks: [],
+      kpis: [],
+      vods: [],
+      journals: [],
+      isCloudConnected: false,
+      breathingActive: false,
+      breathingTimer: null
+    };
+
+    const SEED_DATA = {
+      players: [
+        { id: 'cesar', full_name: 'CESAR AVILA GARCIA', game: 'EAFC', role_description: 'Simulación 1v1 · Enfoque Mediocampo y Ataque', personality_archetype: 'Analítico / Introvertido', badge_color: 'bg-blue-600' },
+        { id: 'emiliano', full_name: 'JESUS EMILIANO ONTIVEROS GUERRERO', game: 'EAFC', role_description: 'Simulación 1v1 · Defensa y Transición Rápida', personality_archetype: 'Dinámico / Extrovertido', badge_color: 'bg-blue-600' },
+        { id: 'andres', full_name: 'ANDRES CABRALES HERNANDEZ', game: 'Fortnite', role_description: 'Battle Royale / Piece Control & Aiming', personality_archetype: 'Dinámico / Extrovertido', badge_color: 'bg-purple-600' },
+        { id: 'humberto', full_name: 'HUMBERTO DE LA PAZ SORIANO', game: 'Mario Kart', role_description: 'Carreras / Trazados y Gestión de Ítems', personality_archetype: 'Analítico / Introvertido', badge_color: 'bg-orange-600' },
+        { id: 'eduardo', full_name: 'EDUARDO TADEO HERNANDEZ MARTINEZ', game: 'Super Smash Bros', role_description: 'Fighting 1v1 · Spacing & Neutral Game', personality_archetype: 'Dinámico / Extrovertido', badge_color: 'bg-red-600' },
+        { id: 'samuel', full_name: 'SAMUEL RICARDO SIFUENTES ALFEREZ', game: 'Super Smash Bros', role_description: 'Fighting 1v1 · Edgeguarding & Punish Game', personality_archetype: 'Analítico / Introvertido', badge_color: 'bg-red-600' }
+      ],
+      tasks: [
+        { id: 't_c1', player_id: 'cesar', week: 1, category: 'Mecánicas / Micro', description: 'Prueba técnica de Timed Finishing (15 min en modo arena)', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: true, evidence_url: '', is_done: true },
+        { id: 't_c2', player_id: 'cesar', week: 2, category: 'Táctica / Macro', description: 'Ejecutar 5 partidas Rivals registrando posesión en último tercio', priority: 'Alta', modality: 'En Casa (Asíncrono)', requires_evidence: true, evidence_url: '', is_done: false },
+        { id: 't_e1', player_id: 'emiliano', week: 1, category: 'Mecánicas / Micro', description: 'Evaluación de defensa con Jockeying (L2/LT)', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: false, evidence_url: '', is_done: true },
+        { id: 't_a1', player_id: 'andres', week: 1, category: 'Mecánicas / Micro', description: 'Test de tiempo base en mapa de Edit Course competitivo', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: true, evidence_url: '', is_done: true },
+        { id: 't_a2', player_id: 'andres', week: 2, category: 'Mecánicas / Micro', description: 'Subir captura de puntuación en Aim Trainer (Kovaaks/Creativo)', priority: 'Media', modality: 'En Casa (Asíncrono)', requires_evidence: true, evidence_url: '', is_done: false },
+        { id: 't_h1', player_id: 'humberto', week: 1, category: 'Mecánicas / Micro', description: 'Contrarreloj en 4 pistas oficiales del torneo', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: false, evidence_url: '', is_done: true },
+        { id: 't_ed1', player_id: 'eduardo', week: 1, category: 'Mecánicas / Micro', description: 'Diagnóstico de Spacing y opciones Out of Shield', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: false, evidence_url: '', is_done: true },
+        { id: 't_s1', player_id: 'samuel', week: 1, category: 'Táctica / Macro', description: 'Práctica de castigos y lecturas de escape en orilla', priority: 'Alta', modality: 'Presencial (Taller)', requires_evidence: false, evidence_url: '', is_done: true }
+      ],
+      kpis: [
+        { id: 'k_c1', player_id: 'cesar', title: 'Efectividad en Timed Finishing', current_value: 65, target_value: 85, unit: '%' },
+        { id: 'k_c2', player_id: 'cesar', title: 'Conversión de Pases Filtrados', current_value: 70, target_value: 85, unit: '%' },
+        { id: 'k_e1', player_id: 'emiliano', title: 'Efectividad en Entradas Manuales', current_value: 60, target_value: 80, unit: '%' },
+        { id: 'k_a1', player_id: 'andres', title: 'Porcentaje de Headshots con Escopeta', current_value: 48, target_value: 65, unit: '%' },
+        { id: 'k_h1', player_id: 'humberto', title: 'Consistencia en Top 3', current_value: 65, target_value: 90, unit: '%' },
+        { id: 'k_ed1', player_id: 'eduardo', title: 'Conversión Out of Shield', current_value: 52, target_value: 75, unit: '%' },
+        { id: 'k_s1', player_id: 'samuel', title: 'Éxito en Edgeguarding', current_value: 55, target_value: 78, unit: '%' }
+      ]
+    };
+
+    window.addEventListener('DOMContentLoaded', async () => {
+      initCountdown();
+      initSupabaseClient();
+      await loadAllDataFromSupabase();
+    });
+
+    function initSupabaseClient() {
+      const url = localStorage.getItem('ih_supabase_url');
+      const key = localStorage.getItem('ih_supabase_key');
+      
+      const badge = document.getElementById('supabase-status-badge');
+      const label = document.getElementById('supabase-status-label');
+
+      if (url && key && window.supabase) {
+        try {
+          supabaseClient = window.supabase.createClient(url, key);
+          state.isCloudConnected = true;
+          badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-emerald-950/70 border border-emerald-700/60 text-emerald-400 hover:bg-emerald-900/50 transition cursor-pointer';
+          label.innerText = 'Supabase Cloud Conectado';
+        } catch (err) {
+          console.error('Error inicializando Supabase:', err);
+          state.isCloudConnected = false;
+          badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-amber-950/70 border border-amber-700/60 text-amber-400 hover:bg-amber-900/50 transition cursor-pointer';
+          label.innerText = 'Credenciales no válidas';
+        }
+      } else {
+        state.isCloudConnected = false;
+        badge.className = 'flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700 transition cursor-pointer';
+        label.innerText = 'Configurar Supabase';
+      }
+    }
+
+    async function loadAllDataFromSupabase(isManualRefresh = false) {
+      const syncIcon = document.getElementById('sync-icon');
+      if (syncIcon) syncIcon.classList.add('fa-spin');
+
+      if (state.isCloudConnected && supabaseClient) {
+        try {
+          // Parallel fetching of all 5 tables from Supabase
+          const [playersRes, tasksRes, kpisRes, vodsRes, journalsRes] = await Promise.all([
+            supabaseClient.from('players').select('*').order('full_name'),
+            supabaseClient.from('tasks').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('kpis').select('*').order('title'),
+            supabaseClient.from('vods').select('*').order('created_at', { ascending: false }),
+            supabaseClient.from('journals').select('*').order('session_date', { ascending: false })
+          ]);
+
+          if (playersRes.error) throw playersRes.error;
+
+          state.players = playersRes.data || [];
+          state.tasks = tasksRes.data || [];
+          state.kpis = kpisRes.data || [];
+          state.vods = vodsRes.data || [];
+          state.journals = journalsRes.data || [];
+
+          // If database is completely empty on first launch, offer automatic seeding
+          if (state.players.length === 0) {
+            console.log('Base de datos vacía, insertando atletas predeterminados...');
+            await seedInitialSupabaseData();
+          }
+
+          if (isManualRefresh) showToast('Datos sincronizados con Supabase');
+        } catch (error) {
+          console.error('Error al consultar Supabase:', error);
+          showToast('Error sincronizando con Supabase. Usando respaldo local.');
+          loadFallbackLocalStorage();
+        }
+      } else {
+        loadFallbackLocalStorage();
+      }
+
+      if (syncIcon) syncIcon.classList.remove('fa-spin');
+
+      // Update UI components
+      populatePlayerSelector();
+      renderCoachView();
+      renderPlayerView();
+    }
+
+    function loadFallbackLocalStorage() {
+      const stored = localStorage.getItem('ih_offline_state');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        state.players = parsed.players || SEED_DATA.players;
+        state.tasks = parsed.tasks || SEED_DATA.tasks;
+        state.kpis = parsed.kpis || SEED_DATA.kpis;
+        state.vods = parsed.vods || [];
+        state.journals = parsed.journals || [];
+      } else {
+        state.players = [...SEED_DATA.players];
+        state.tasks = [...SEED_DATA.tasks];
+        state.kpis = [...SEED_DATA.kpis];
+        state.vods = [];
+        state.journals = [];
+        saveFallbackLocalStorage();
+      }
+    }
+
+    function saveFallbackLocalStorage() {
+      localStorage.setItem('ih_offline_state', JSON.stringify({
+        players: state.players,
+        tasks: state.tasks,
+        kpis: state.kpis,
+        vods: state.vods,
+        journals: state.journals
+      }));
+    }
+
+    async function seedInitialSupabaseData() {
+      if (!supabaseClient) return;
+      try {
+        await supabaseClient.from('players').upsert(SEED_DATA.players);
+        await supabaseClient.from('tasks').upsert(SEED_DATA.tasks);
+        await supabaseClient.from('kpis').upsert(SEED_DATA.kpis);
+        
+        // Refetch after seeding
+        const { data: p } = await supabaseClient.from('players').select('*');
+        const { data: t } = await supabaseClient.from('tasks').select('*');
+        const { data: k } = await supabaseClient.from('kpis').select('*');
+        state.players = p || [];
+        state.tasks = t || [];
+        state.kpis = k || [];
+      } catch (err) {
+        console.error('Error al insertar seed:', err);
+      }
+    }
+
+    async function loadDefaultMockData() {
+      if (!supabaseClient) {
+        showToast('Primero guarda la URL y la Key de Supabase');
+        return;
+      }
+      showToast('Cargando datos predeterminados en la nube...');
+      await seedInitialSupabaseData();
+      await loadAllDataFromSupabase(true);
+      closeModal('modal-supabase-config');
+    }
+
+    function initCountdown() {
+      const targetDate = new Date('2026-10-24T09:00:00');
+      function update() {
+        const now = new Date();
+        const diff = targetDate - now;
+        if (diff <= 0) {
+          document.getElementById('countdown-badge').innerText = '¡Hoy es el Torneo!';
+          return;
+        }
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff / (1000 * 60 * 60)) % 24);
+        document.getElementById('countdown-badge').innerText = `${days}d ${hours}h restantes`;
+      }
+      update();
+      setInterval(update, 60000);
+    }
+
+    function populatePlayerSelector() {
+      const select = document.getElementById('player-select');
+      select.innerHTML = '';
+      if (state.players.length === 0) return;
+
+      if (!state.players.some(p => p.id === state.selectedPlayerId)) {
+        state.selectedPlayerId = state.players[0].id;
+      }
+
+      state.players.forEach(p => {
+        const opt = document.createElement('option');
+        opt.value = p.id;
+        opt.innerText = `${p.full_name.split(' ')[0]} (${p.game})`;
+        if (p.id === state.selectedPlayerId) opt.selected = true;
+        select.appendChild(opt);
+      });
+    }
+
+    function switchViewMode(mode) {
+      state.viewMode = mode;
+      const btnCoach = document.getElementById('btn-mode-coach');
+      const btnPlayer = document.getElementById('btn-mode-player');
+      const playerSelector = document.getElementById('player-selector-container');
+      const viewCoach = document.getElementById('view-coach');
+      const viewPlayer = document.getElementById('view-player');
+
+      if (mode === 'coach') {
+        btnCoach.className = 'px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-white bg-sky-600';
+        btnPlayer.className = 'px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-slate-400 hover:text-white';
+        playerSelector.classList.add('hidden');
+        viewCoach.classList.remove('hidden');
+        viewPlayer.classList.add('hidden');
+        renderCoachView();
+      } else {
+        btnPlayer.className = 'px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-white bg-sky-600';
+        btnCoach.className = 'px-3 py-1.5 rounded-lg font-semibold transition-all duration-200 text-slate-400 hover:text-white';
+        playerSelector.classList.remove('hidden');
+        viewCoach.classList.add('hidden');
+        viewPlayer.classList.remove('hidden');
+        renderPlayerView();
+      }
+    }
+
+    function onPlayerSelectChange(id) {
+      state.selectedPlayerId = id;
+      renderPlayerView();
+    }
+
+    function selectPlayerFromCoach(id) {
+      state.selectedPlayerId = id;
+      document.getElementById('player-select').value = id;
+      switchViewMode('player');
+    }
+
+    function renderCoachView() {
+      const grid = document.getElementById('roster-grid');
+      grid.innerHTML = '';
+
+      let totalTasks = 0;
+      let completedTasks = 0;
+      const totalVods = state.vods.length;
+
+      state.players.forEach(player => {
+        const pTasks = state.tasks.filter(t => t.player_id === player.id);
+        const pDone = pTasks.filter(t => t.is_done).length;
+        const pVods = state.vods.filter(v => v.player_id === player.id).length;
+
+        totalTasks += pTasks.length;
+        completedTasks += pDone;
+
+        const pct = pTasks.length > 0 ? Math.round((pDone / pTasks.length) * 100) : 0;
+
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 hover:border-slate-700 rounded-2xl p-5 transition duration-200 flex flex-col justify-between gap-4 cursor-pointer group';
+        card.onclick = () => selectPlayerFromCoach(player.id);
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="px-2.5 py-1 rounded-full text-[11px] font-bold text-white ${player.badge_color || 'bg-sky-600'}">
+                ${player.game}
+              </span>
+              <span class="text-xs font-semibold text-slate-400">
+                <i class="fa-solid fa-brain mr-1"></i> ${player.personality_archetype}
+              </span>
+            </div>
+
+            <div>
+              <h3 class="font-display font-bold text-lg text-white group-hover:text-sky-400 transition">
+                ${player.full_name}
+              </h3>
+              <p class="text-xs text-slate-400 line-clamp-1 mt-0.5">${player.role_description}</p>
+            </div>
+          </div>
+
+          <div class="space-y-2 pt-2 border-t border-slate-800">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Cumplimiento</span>
+              <span class="font-bold text-emerald-400">${pDone}/${pTasks.length} (${pct}%)</span>
+            </div>
+            <div class="w-full bg-slate-950 h-2 rounded-full overflow-hidden">
+              <div class="bg-emerald-500 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+            </div>
+            <div class="flex justify-between items-center text-[11px] text-slate-500 pt-1">
+              <span>VODs subidos: <strong class="text-slate-300">${pVods}</strong></span>
+              <span class="text-sky-400 font-semibold group-hover:underline">Expediente <i class="fa-solid fa-arrow-right text-[10px]"></i></span>
+            </div>
+          </div>
+        `;
+        grid.appendChild(card);
+      });
+
+      const globalPct = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+      document.getElementById('coach-task-completion-rate').innerText = `${globalPct}%`;
+      document.getElementById('coach-vod-count').innerText = totalVods;
+      document.getElementById('coach-player-count').innerText = `${state.players.length} Atletas`;
+    }
+
+    function renderPlayerView() {
+      const player = state.players.find(p => p.id === state.selectedPlayerId) || state.players[0];
+      if (!player) return;
+
+      document.getElementById('player-avatar').innerText = player.full_name.charAt(0);
+      document.getElementById('player-avatar').className = `w-20 h-20 rounded-2xl flex items-center justify-center text-3xl font-black text-white shadow-xl border-2 border-slate-700/50 ${player.badge_color || 'bg-sky-600'}`;
+      document.getElementById('player-fullname').innerText = player.full_name;
+      document.getElementById('player-role-desc').innerText = player.role_description;
+      document.getElementById('player-game-badge').innerText = player.game;
+      document.getElementById('player-game-badge').className = `px-3 py-0.5 rounded-full text-xs font-bold text-white ${player.badge_color || 'bg-sky-600'}`;
+      document.getElementById('player-personality-badge').innerText = player.personality_archetype;
+
+      // Calculate player progress
+      const pTasks = state.tasks.filter(t => t.player_id === player.id);
+      const pDone = pTasks.filter(t => t.is_done).length;
+      const pct = pTasks.length > 0 ? Math.round((pDone / pTasks.length) * 100) : 0;
+
+      document.getElementById('player-progress-pct').innerText = `${pct}%`;
+      document.getElementById('player-tasks-completed-text').innerText = `${pDone}/${pTasks.length} Tareas`;
+      document.getElementById('player-progress-bar').style.width = `${pct}%`;
+
+      renderTasksTab(player);
+      renderKpisTab(player);
+      renderVodsTab(player);
+      renderJournalTab(player);
+    }
+
+    function switchPlayerTab(tab) {
+      state.activePlayerTab = tab;
+      ['tasks', 'kpis', 'vods', 'mindset'].forEach(t => {
+        const btn = document.getElementById(`tab-btn-${t}`);
+        const content = document.getElementById(`player-tab-${t}`);
+        if (t === tab) {
+          btn.className = 'px-4 py-3 border-b-2 border-sky-500 text-sky-400 flex items-center gap-2 whitespace-nowrap font-bold';
+          content.classList.remove('hidden');
+        } else {
+          btn.className = 'px-4 py-3 border-b-2 border-transparent text-slate-400 hover:text-white flex items-center gap-2 whitespace-nowrap font-medium';
+          content.classList.add('hidden');
+        }
+      });
+    }
+
+    function renderTasksTab(player) {
+      const container = document.getElementById('tasks-container');
+      container.innerHTML = '';
+
+      const pTasks = state.tasks.filter(t => t.player_id === player.id);
+
+      if (pTasks.length === 0) {
+        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-500 text-xs">No hay actividades asignadas aún. Haz clic en "Nueva Actividad" para registrar una en Supabase.</div>`;
+        return;
+      }
+
+      for (let w = 1; w <= 5; w++) {
+        const weekTasks = pTasks.filter(t => t.week === w);
+        if (weekTasks.length === 0) continue;
+
+        const box = document.createElement('div');
+        box.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3';
+        box.innerHTML = `
+          <div class="flex items-center justify-between border-b border-slate-800 pb-2">
+            <span class="text-xs font-bold text-sky-400 uppercase tracking-wider">Semana ${w}</span>
+            <span class="text-[11px] text-slate-500">${weekTasks.filter(t => t.is_done).length}/${weekTasks.length} Completadas</span>
+          </div>
+          <div class="space-y-2" id="week-${w}-list"></div>
+        `;
+        container.appendChild(box);
+        const list = box.querySelector(`#week-${w}-list`);
+
+        weekTasks.forEach(task => {
+          const item = document.createElement('div');
+          item.className = `p-3.5 rounded-xl border transition flex flex-col sm:flex-row sm:items-center justify-between gap-3 ${
+            task.is_done ? 'bg-slate-950/40 border-slate-800/60 opacity-60' : 'bg-slate-950 border-slate-800 hover:border-slate-700'
+          }`;
+          item.innerHTML = `
+            <div class="flex items-start gap-3">
+              <input type="checkbox" ${task.is_done ? 'checked' : ''} onchange="toggleTaskDone('${task.id}')" class="mt-0.5 w-4 h-4 rounded bg-slate-900 border-slate-700 text-sky-600 focus:ring-0 cursor-pointer">
+              <div class="space-y-1">
+                <span class="text-xs text-slate-200 block ${task.is_done ? 'line-through text-slate-500' : ''}">${task.description}</span>
+                <div class="flex items-center gap-2 flex-wrap text-[10px]">
+                  <span class="font-semibold px-2 py-0.5 rounded bg-slate-800 text-sky-300 border border-slate-700">${task.modality}</span>
+                  <span class="font-semibold px-2 py-0.5 rounded ${task.priority === 'Alta' ? 'bg-red-950 text-red-400 border border-red-900/50' : 'bg-slate-800 text-slate-400'}">${task.priority}</span>
+                  <span class="text-slate-500">${task.category || 'Mecánicas'}</span>
+                  ${task.evidence_url ? `<a href="${task.evidence_url}" target="_blank" class="text-purple-400 hover:underline flex items-center gap-1 font-bold"><i class="fa-solid fa-paperclip"></i> Evidencia</a>` : ''}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2 self-end sm:self-center">
+              <button onclick="openEditTaskModal('${task.id}')" title="Editar tarea" class="text-slate-400 hover:text-sky-400 text-xs px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg"><i class="fa-solid fa-pen"></i></button>
+              <button onclick="deleteTask('${task.id}')" title="Eliminar tarea" class="text-slate-400 hover:text-red-400 text-xs px-2 py-1 bg-slate-900 border border-slate-800 rounded-lg"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          `;
+          list.appendChild(item);
+        });
+      }
+    }
+
+    function renderKpisTab(player) {
+      const container = document.getElementById('kpis-container');
+      container.innerHTML = '';
+      const pKpis = state.kpis.filter(k => k.player_id === player.id);
+
+      if (pKpis.length === 0) {
+        container.innerHTML = `<div class="col-span-2 text-center text-slate-500 text-xs py-8">No hay métricas asignadas aún. Haz clic en "Añadir KPI" para definir una meta.</div>`;
+        return;
+      }
+
+      pKpis.forEach(kpi => {
+        const pct = Math.min(100, Math.round((kpi.current_value / kpi.target_value) * 100));
+        const card = document.createElement('div');
+        card.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3';
+        card.innerHTML = `
+          <div class="flex items-start justify-between">
+            <h4 class="font-bold text-sm text-white">${kpi.title}</h4>
+            <div class="flex items-center gap-2">
+              <span class="text-xs font-extrabold text-sky-400 bg-sky-950 border border-sky-800 px-2 py-0.5 rounded-full">${pct}%</span>
+              <button onclick="deleteKpi('${kpi.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+          </div>
+          <div class="flex items-baseline justify-between text-xs">
+            <span class="text-slate-400">Actual: <strong class="text-white">${kpi.current_value} ${kpi.unit}</strong></span>
+            <span class="text-slate-400">Meta: <strong class="text-emerald-400">${kpi.target_value} ${kpi.unit}</strong></span>
+          </div>
+          <div class="w-full bg-slate-950 h-2.5 rounded-full overflow-hidden border border-slate-800">
+            <div class="bg-gradient-to-r from-sky-500 to-emerald-400 h-full rounded-full transition-all duration-500" style="width: ${pct}%"></div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function renderVodsTab(player) {
+      const container = document.getElementById('vods-container');
+      container.innerHTML = '';
+      const pVods = state.vods.filter(v => v.player_id === player.id);
+
+      if (pVods.length === 0) {
+        container.innerHTML = `<div class="bg-slate-900 border border-slate-800 rounded-2xl p-8 text-center text-slate-500 text-xs">Aún no hay grabaciones subidas. Haz clic en "Subir Grabación" para enviar una partida para el taller.</div>`;
+        return;
+      }
+
+      pVods.forEach(vod => {
+        const item = document.createElement('div');
+        item.className = 'bg-slate-900 border border-slate-800 rounded-2xl p-4 space-y-3';
+        item.innerHTML = `
+          <div class="flex items-start justify-between">
+            <div class="space-y-1">
+              <h4 class="font-bold text-sm text-white flex items-center gap-2">
+                <i class="fa-solid fa-circle-play text-purple-400"></i> ${vod.title}
+              </h4>
+              <a href="${vod.vod_url}" target="_blank" class="text-xs text-purple-400 hover:underline flex items-center gap-1">
+                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Ver Video / Clip
+              </a>
+            </div>
+            <button onclick="deleteVod('${vod.id}')" class="text-slate-500 hover:text-red-400 text-xs"><i class="fa-solid fa-trash"></i></button>
+          </div>
+          <p class="text-xs text-slate-300 bg-slate-950 p-3 rounded-xl border border-slate-800">
+            <strong class="text-slate-400 block mb-0.5">Notas del Atleta:</strong> ${vod.player_notes || 'Sin anotaciones'}
+          </p>
+          ${vod.coach_feedback ? `
+            <div class="text-xs text-sky-200 bg-sky-950/40 p-3 rounded-xl border border-sky-800/50">
+              <strong class="text-sky-400 block mb-0.5"><i class="fa-solid fa-user-shield mr-1"></i> Retroalimentación del Coach:</strong> ${vod.coach_feedback}
+            </div>
+          ` : ''}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderJournalTab(player) {
+      const container = document.getElementById('journal-container');
+      container.innerHTML = '';
+      const pJournals = state.journals.filter(j => j.player_id === player.id);
+
+      if (pJournals.length === 0) {
+        container.innerHTML = `<div class="text-center text-slate-500 text-xs py-6">Bitácora vacía. Registra tu balance emocional y respuesta tras entrenar.</div>`;
+        return;
+      }
+
+      pJournals.forEach(j => {
+        const card = document.createElement('div');
+        card.className = 'bg-slate-950 border border-slate-800 rounded-xl p-4 space-y-2';
+        card.innerHTML = `
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-bold text-white">${j.session_outcome}</span>
+            <span class="text-slate-500">${j.session_date || 'Reciente'}</span>
+          </div>
+          <p class="text-xs text-slate-300"><strong>Estímulo Desencadenante:</strong> ${j.tilt_trigger}</p>
+          <p class="text-xs text-sky-300"><strong>Ajuste Causal Inmediato:</strong> ${j.objective_response}</p>
+          ${j.box_breathing_used ? `<span class="inline-block text-[10px] text-emerald-400 bg-emerald-950/50 px-2 py-0.5 rounded border border-emerald-800/50"><i class="fa-solid fa-check mr-1"></i>Respiración 4-4-4-4 aplicada</span>` : ''}
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    async function toggleTaskDone(taskId) {
+      const task = state.tasks.find(t => t.id === taskId);
+      if (!task) return;
+
+      const newStatus = !task.is_done;
+      task.is_done = newStatus;
+      task.completed_at = newStatus ? new Date().toISOString() : null;
+
+      renderPlayerView();
+      if (state.viewMode === 'coach') renderCoachView();
+
+      if (state.isCloudConnected && supabaseClient) {
+        const { error } = await supabaseClient
+          .from('tasks')
+          .update({ is_done: newStatus, completed_at: task.completed_at })
+          .eq('id', taskId);
+        if (error) console.error('Error al actualizar en Supabase:', error);
+      } else {
+        saveFallbackLocalStorage();
+      }
+
+      showToast(newStatus ? 'Actividad marcada como completada' : 'Actividad reactivada');
+    }
+
+    async function deleteTask(taskId) {
+      state.tasks = state.tasks.filter(t => t.id !== taskId);
+      renderPlayerView();
+      if (state.viewMode === 'coach') renderCoachView();
+
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('tasks').delete().eq('id', taskId);
+      } else {
+        saveFallbackLocalStorage();
+      }
+      showToast('Actividad eliminada');
+    }
+
+    function openAddTaskModal() {
+      document.getElementById('modal-task-title').innerText = 'Nueva Actividad de Entrenamiento';
+      document.getElementById('input-task-id').value = '';
+      document.getElementById('input-task-desc').value = '';
+      document.getElementById('input-task-evidence').value = '';
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+
+    function openEditTaskModal(taskId) {
+      const t = state.tasks.find(x => x.id === taskId);
+      if (!t) return;
+      document.getElementById('modal-task-title').innerText = 'Editar Actividad';
+      document.getElementById('input-task-id').value = t.id;
+      document.getElementById('input-task-desc').value = t.description;
+      document.getElementById('select-task-week').value = t.week;
+      document.getElementById('select-task-modality').value = t.modality || 'Presencial (Taller)';
+      document.getElementById('select-task-priority').value = t.priority || 'Media';
+      document.getElementById('select-task-category').value = t.category || 'Mecánicas / Micro';
+      document.getElementById('input-task-evidence').value = t.evidence_url || '';
+      document.getElementById('modal-task').classList.remove('hidden');
+    }
+
+    async function handleSaveTaskSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('input-task-id').value;
+      const desc = document.getElementById('input-task-desc').value;
+      const week = parseInt(document.getElementById('select-task-week').value);
+      const modality = document.getElementById('select-task-modality').value;
+      const priority = document.getElementById('select-task-priority').value;
+      const category = document.getElementById('select-task-category').value;
+      const evidence = document.getElementById('input-task-evidence').value;
+
+      const payload = {
+        player_id: state.selectedPlayerId,
+        week,
+        modality,
+        priority,
+        category,
+        description: desc,
+        evidence_url: evidence || null,
+        requires_evidence: Boolean(evidence)
+      };
+
+      if (id) {
+        // UPDATE
+        const task = state.tasks.find(t => t.id === id);
+        Object.assign(task, payload);
+
+        if (state.isCloudConnected && supabaseClient) {
+          await supabaseClient.from('tasks').update(payload).eq('id', id);
+        } else {
+          saveFallbackLocalStorage();
+        }
+      } else {
+        // INSERT
+        const newId = 't_' + Date.now();
+        const newTask = { id: newId, is_done: false, ...payload };
+        state.tasks.unshift(newTask);
+
+        if (state.isCloudConnected && supabaseClient) {
+          const { data } = await supabaseClient.from('tasks').insert([newTask]).select();
+          if (data && data[0]) newTask.id = data[0].id;
+        } else {
+          saveFallbackLocalStorage();
+        }
+      }
+
+      renderPlayerView();
+      if (state.viewMode === 'coach') renderCoachView();
+      closeModal('modal-task');
+      showToast('Actividad guardada en Supabase');
+    }
+
+    function openAddPlayerModal() {
+      document.getElementById('modal-player-title').innerText = 'Registrar Nuevo Atleta';
+      document.getElementById('input-player-id').value = '';
+      document.getElementById('input-player-fullname').value = '';
+      document.getElementById('input-player-role').value = '';
+      document.getElementById('modal-player').classList.remove('hidden');
+    }
+
+    function openEditPlayerModal() {
+      const p = state.players.find(x => x.id === state.selectedPlayerId);
+      if (!p) return;
+      document.getElementById('modal-player-title').innerText = 'Editar Información del Atleta';
+      document.getElementById('input-player-id').value = p.id;
+      document.getElementById('input-player-fullname').value = p.full_name;
+      document.getElementById('select-player-game').value = p.game;
+      document.getElementById('input-player-role').value = p.role_description;
+      document.getElementById('select-player-personality').value = p.personality_archetype;
+      document.getElementById('modal-player').classList.remove('hidden');
+    }
+
+    async function handleSavePlayerSubmit(e) {
+      e.preventDefault();
+      const id = document.getElementById('input-player-id').value;
+      const fullName = document.getElementById('input-player-fullname').value;
+      const game = document.getElementById('select-player-game').value;
+      const role = document.getElementById('input-player-role').value;
+      const personality = document.getElementById('select-player-personality').value;
+
+      const colors = {
+        'EAFC': 'bg-blue-600',
+        'Fortnite': 'bg-purple-600',
+        'Mario Kart': 'bg-orange-600',
+        'Super Smash Bros': 'bg-red-600',
+        'Valorant': 'bg-rose-600',
+        'Rocket League': 'bg-sky-600',
+        'Otro': 'bg-slate-700'
+      };
+
+      const payload = {
+        full_name: fullName,
+        game,
+        role_description: role,
+        personality_archetype: personality,
+        badge_color: colors[game] || 'bg-sky-600'
+      };
+
+      if (id) {
+        const p = state.players.find(x => x.id === id);
+        Object.assign(p, payload);
+        if (state.isCloudConnected && supabaseClient) {
+          await supabaseClient.from('players').update(payload).eq('id', id);
+        } else {
+          saveFallbackLocalStorage();
+        }
+      } else {
+        const newId = fullName.toLowerCase().replace(/\s+/g, '_') + '_' + Date.now();
+        const newPlayer = { id: newId, ...payload };
+        state.players.push(newPlayer);
+        state.selectedPlayerId = newId;
+
+        if (state.isCloudConnected && supabaseClient) {
+          await supabaseClient.from('players').insert([newPlayer]);
+        } else {
+          saveFallbackLocalStorage();
+        }
+      }
+
+      populatePlayerSelector();
+      renderCoachView();
+      renderPlayerView();
+      closeModal('modal-player');
+      showToast('Perfil de atleta guardado');
+    }
+
+    function openAddKpiModal() {
+      document.getElementById('input-kpi-title').value = '';
+      document.getElementById('input-kpi-current').value = '';
+      document.getElementById('input-kpi-target').value = '';
+      document.getElementById('modal-kpi').classList.remove('hidden');
+    }
+
+    async function handleSaveKpiSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('input-kpi-title').value;
+      const current = parseFloat(document.getElementById('input-kpi-current').value);
+      const target = parseFloat(document.getElementById('input-kpi-target').value);
+      const unit = document.getElementById('input-kpi-unit').value;
+
+      const newKpi = {
+        id: 'k_' + Date.now(),
+        player_id: state.selectedPlayerId,
+        title,
+        current_value: current,
+        target_value: target,
+        unit
+      };
+
+      state.kpis.push(newKpi);
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('kpis').insert([newKpi]);
+      } else {
+        saveFallbackLocalStorage();
+      }
+
+      renderPlayerView();
+      closeModal('modal-kpi');
+      showToast('KPI registrado');
+    }
+
+    async function deleteKpi(id) {
+      state.kpis = state.kpis.filter(k => k.id !== id);
+      renderPlayerView();
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('kpis').delete().eq('id', id);
+      } else {
+        saveFallbackLocalStorage();
+      }
+      showToast('KPI eliminado');
+    }
+
+    function openAddVodModal() {
+      document.getElementById('input-vod-title').value = '';
+      document.getElementById('input-vod-url').value = '';
+      document.getElementById('input-vod-notes').value = '';
+      document.getElementById('modal-vod').classList.remove('hidden');
+    }
+
+    async function handleSaveVodSubmit(e) {
+      e.preventDefault();
+      const title = document.getElementById('input-vod-title').value;
+      const url = document.getElementById('input-vod-url').value;
+      const notes = document.getElementById('input-vod-notes').value;
+
+      const newVod = {
+        id: 'v_' + Date.now(),
+        player_id: state.selectedPlayerId,
+        title,
+        vod_url: url,
+        player_notes: notes,
+        status: 'Pendiente'
+      };
+
+      state.vods.unshift(newVod);
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('vods').insert([newVod]);
+      } else {
+        saveFallbackLocalStorage();
+      }
+
+      renderPlayerView();
+      if (state.viewMode === 'coach') renderCoachView();
+      closeModal('modal-vod');
+      showToast('VOD registrado en Supabase');
+    }
+
+    async function deleteVod(id) {
+      state.vods = state.vods.filter(v => v.id !== id);
+      renderPlayerView();
+      if (state.viewMode === 'coach') renderCoachView();
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('vods').delete().eq('id', id);
+      } else {
+        saveFallbackLocalStorage();
+      }
+      showToast('VOD eliminado');
+    }
+
+    function openAddJournalModal() {
+      document.getElementById('input-journal-trigger').value = '';
+      document.getElementById('input-journal-action').value = '';
+      document.getElementById('input-journal-breathing').checked = false;
+      document.getElementById('modal-journal').classList.remove('hidden');
+    }
+
+    async function handleSaveJournalSubmit(e) {
+      e.preventDefault();
+      const mood = document.getElementById('select-journal-mood').value;
+      const trigger = document.getElementById('input-journal-trigger').value;
+      const action = document.getElementById('input-journal-action').value;
+      const breathing = document.getElementById('input-journal-breathing').checked;
+
+      const newJournal = {
+        id: 'j_' + Date.now(),
+        player_id: state.selectedPlayerId,
+        session_date: new Date().toISOString().split('T')[0],
+        session_outcome: mood,
+        tilt_trigger: trigger,
+        objective_response: action,
+        box_breathing_used: breathing
+      };
+
+      state.journals.unshift(newJournal);
+      if (state.isCloudConnected && supabaseClient) {
+        await supabaseClient.from('journals').insert([newJournal]);
+      } else {
+        saveFallbackLocalStorage();
+      }
+
+      renderPlayerView();
+      closeModal('modal-journal');
+      showToast('Bitácora cognitiva guardada');
+    }
+
+    function toggleBreathingTool() {
+      const btn = document.getElementById('btn-breathing-toggle');
+      if (state.breathingActive) {
+        clearInterval(state.breathingTimer);
+        state.breathingActive = false;
+        btn.innerHTML = `<i class="fa-solid fa-play"></i> Iniciar Guía`;
+        btn.className = 'px-5 py-2.5 bg-sky-600 hover:bg-sky-500 text-white rounded-xl text-xs font-bold transition flex items-center gap-2';
+        document.getElementById('breathing-phase-text').innerText = 'En pausa';
+        document.getElementById('breathing-seconds').innerText = '4';
+        document.getElementById('breathing-instruction').innerText = 'Inhala profundamente';
+      } else {
+        state.breathingActive = true;
+        btn.innerHTML = `<i class="fa-solid fa-pause"></i> Detener`;
+        btn.className = 'px-5 py-2.5 bg-slate-800 text-white rounded-xl text-xs font-bold transition flex items-center gap-2 border border-slate-700';
+        let sec = 4, phaseIndex = 0;
+        const phases = [
+          { name: 'Inhala', action: 'Inhala por la nariz', size: 'w-36 h-36 bg-sky-500/40 border-sky-400' },
+          { name: 'Sostén', action: 'Mantén el aire con calma', size: 'w-36 h-36 bg-emerald-500/40 border-emerald-400' },
+          { name: 'Exhala', action: 'Exhala suave por la boca', size: 'w-24 h-24 bg-purple-500/40 border-purple-400' },
+          { name: 'Sostén', action: 'Pausa con pulmones vacíos', size: 'w-24 h-24 bg-amber-500/40 border-amber-400' }
+        ];
+
+        state.breathingTimer = setInterval(() => {
+          sec--;
+          if (sec < 0) {
+            sec = 3;
+            phaseIndex = (phaseIndex + 1) % 4;
+          }
+          const cur = phases[phaseIndex];
+          document.getElementById('breathing-seconds').innerText = sec + 1;
+          document.getElementById('breathing-phase-text').innerText = cur.name;
+          document.getElementById('breathing-instruction').innerText = cur.action;
+          document.getElementById('breathing-circle').className = `rounded-full border-2 flex items-center justify-center transition-all duration-1000 ${cur.size}`;
+        }, 1000);
+      }
+    }
+
+    function openSupabaseConfigModal() {
+      document.getElementById('input-supabase-url').value = localStorage.getItem('ih_supabase_url') || '';
+      document.getElementById('input-supabase-key').value = localStorage.getItem('ih_supabase_key') || '';
+      document.getElementById('modal-supabase-config').classList.remove('hidden');
+    }
+
+    async function handleSaveSupabaseConfig(e) {
+      e.preventDefault();
+      const url = document.getElementById('input-supabase-url').value.trim();
+      const key = document.getElementById('input-supabase-key').value.trim();
+
+      localStorage.setItem('ih_supabase_url', url);
+      localStorage.setItem('ih_supabase_key', key);
+
+      initSupabaseClient();
+      await loadAllDataFromSupabase(true);
+      closeModal('modal-supabase-config');
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+    }
+
+    function showToast(msg) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'bg-slate-900 border border-slate-700 text-white text-xs px-4 py-3 rounded-xl shadow-2xl flex items-center gap-2 pointer-events-auto transition duration-300';
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> ${msg}`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>
